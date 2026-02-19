@@ -38,7 +38,6 @@ async function main() {
   program.parse(process.argv);
   const opts = program.opts();
   let docsCollectionName = opts.collection;
-  const chunksCollectionName = docsCollectionName.replace('docs', 'chunks');
 
   // make sure we have a target collection to update
   await ensureDocsAndChunksCollections(docsCollectionName);

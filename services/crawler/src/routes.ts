@@ -17,7 +17,7 @@ import { URL } from 'url';
 import { flatMap } from 'remeda';
 
 const turndownService = new TurndownService();
-const tokenCountWarningThreshold = 20;
+const chunkCountWarningThreshold = 20;
 
 const chunkImportBatchSize = 40;
 const maxChunkLength = 4000;
@@ -29,7 +29,6 @@ const sectionDelimLen = sectionDelim.length;
 let sumTokens = 0;
 let sumDocs = 0;
 let sumChunks = 0;
-let chunksCollectionName = '';
 
 const encoding = get_encoding('cl100k_base');
 
@@ -63,7 +62,7 @@ export async function defaultHandler(
   const startUrl = request.url;
   const processLinks = false;
 
-  chunksCollectionName = collectionName.replace('docs', 'chunks');
+  const chunksCollectionName = collectionName.replace('docs', 'chunks');
   await page.waitForLoadState('networkidle');
 
   const fullPageUrl = page.url();
@@ -214,9 +213,9 @@ async function chunkDocContents(markdown: string, urlHash: string, log: apifyLog
   sumChunks += chunkLengths.length;
   let batch: RagChunk[] = [];
 
-  if ((chunkLengths.length || 0) < tokenCountWarningThreshold) {
+  if (chunkLengths.length < chunkCountWarningThreshold) {
     log.warning(
-      `Only ${chunkLengths.length} tokens extracted\n from doc_num ${urlHash}\n consider verifying the locators for this url.`,
+      `Only ${chunkLengths.length} chunks extracted from doc_num ${urlHash}. Consider verifying the locators for this url.`,
     );
   } else {
     log.info(`   Found ${chunkLengths.length} chunks, uploading...`);
