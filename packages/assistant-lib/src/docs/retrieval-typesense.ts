@@ -548,11 +548,11 @@ const chunksCollectionSchema = (
 export async function ensureDocsAndChunksCollections(
   docsCollectionName: string,
 ) {
-  ensureCollectionExists(
+  await ensureCollectionExists(
     docsCollectionName,
     docsCollectionSchema(docsCollectionName),
   );
-  ensureCollectionExists(
+  await ensureCollectionExists(
     docsCollectionName,
     chunksCollectionSchema(
       docsCollectionName.replace("docs", "chunks"),
@@ -644,7 +644,7 @@ export async function getDocChecksums(
     .search({
       q: "*",
       filter_by: idList.map((id) => `id:=${id}`).join(" || "),
-      include_fields: "id,chunk_id,markdown_checksum",
+      include_fields: "id,chunk_id,markdown_checksum,source_document_url",
     });
 
   return documents.hits?.map((hit: any) => hit.document as RagDocQuery) || [];

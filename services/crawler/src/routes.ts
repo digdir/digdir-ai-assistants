@@ -161,10 +161,19 @@ export async function defaultHandler(
     currentDocs[0].id == urlHash &&
     currentDocs[0].markdown_checksum == markdown_checksum
   ) {
-    if (currentDocs[0].source_document_url != pageUrl_without_anchor) {
+    if (currentDocs[0].source_document_url && currentDocs[0].source_document_url != pageUrl_without_anchor) {
+      // Both URLs are valid but different — genuine possible redirect
       log.warning(
         `Possible redirect, not updating yet...\noriginal url: ${currentDocs[0].source_document_url}\nnew url:   ${pageUrl_without_anchor}`,
       );
+    } else if (!currentDocs[0].source_document_url) {
+      // source_document_url was stored as undefined — fix it without re-chunking
+      log.info(`[FIX] source_document_url missing, re-indexing url: '${pageUrl_without_anchor}'`);
+      const docResults = await updateDocs([updatedDoc], collectionName);
+      const failedDocs = docResults.filter((result: any) => !result.success);
+      if (failedDocs.length > 0) {
+        log.error(`Upsert to typesense failed for the following urls:\n${failedDocs}`);
+      }
     } else {
       log.info(
         `  [NO CHANGE] tokens: ${tokens.length}, No change for url: ${pageUrl_without_anchor}`,

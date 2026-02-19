@@ -1,6 +1,5 @@
 // For more information, see https://crawlee.dev/
 import { Sitemap } from '@crawlee/utils';
-import { Dataset } from '@crawlee/core';
 import { PlaywrightCrawler } from '@crawlee/playwright';
 import { ensureDocsAndChunksCollections, retrieveAllUrls } from '@digdir/assistant-lib';
 import { createRouter, failedRequestHandler } from './routes.ts';
@@ -102,9 +101,14 @@ async function main() {
   // Run the crawler
   await crawler.run();
 
-  await Dataset.exportToCSV('results');
+  const dataset = await crawler.getDataset();
+  const allData = await dataset.getData();
 
-  const allData = await Dataset.getData();
+  if (allData.items.length > 0) {
+    await dataset.exportToCSV('results');
+  } else {
+    console.warn('Dataset is empty or unavailable, skipping CSV export.');
+  }
 
   // Replace the union and difference functions with custom logic
 
