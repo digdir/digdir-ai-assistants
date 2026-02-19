@@ -1,8 +1,7 @@
 import { ChatCompletionMessageParam } from "openai/resources";
 import { envVar } from "../general";
-import { azureOpenAI, openaiClient, chat_stream } from "../llm";
+import { openaiClient, chat_stream, modelName, temperature } from "../llm";
 
-// const azureLlm = azureOpenAI();
 const openaiLlm = openaiClient();
 
 export async function translate(
@@ -27,19 +26,11 @@ export async function translate(
   if (typeof stream_callback === "function") {
     translated = await chat_stream(messages, stream_callback);
   } else {
-    if (envVar("USE_AZURE_OPENAI_API") === "true") {
-      // query_result = await azureLlm.chat.completions.create({
-      //   model: envVar('AZURE_OPENAI_DEPLOYMENT'),
-      //   temperature: 0.1,
-      //   messages: messages
-      // });
-    } else {
-      query_result = await openaiLlm.chat.completions.create({
-        model: envVar("OPENAI_API_MODEL_NAME"),
-        temperature: 0.1,
-        messages: messages,
-      });
-    }
+    query_result = await openaiLlm.chat.completions.create({
+      model: modelName(),
+      temperature: temperature(),
+      messages: messages,
+    });
 
     translated = query_result.choices[0].message.content;
   }

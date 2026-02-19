@@ -82,10 +82,30 @@ export function azureOpenAI() {
 }
 
 export function openaiClient(): OpenAI {
-  const openAI = new OpenAI({
-    apiKey: envVar("OPENAI_API_KEY"),
-  });
-  return openAI;
+  if (envVar("USE_AZURE_OPENAI_API") === "true") {
+    return new OpenAI({
+      apiKey: envVar("AZURE_OPENAI_API_KEY"),
+      baseURL: `${envVar("AZURE_OPENAI_API_ENDPOINT")}/openai/deployments/${envVar("AZURE_OPENAI_DEPLOYMENT_NAME")}`,
+      defaultQuery: { "api-version": envVar("AZURE_OPENAI_API_VERSION") },
+      defaultHeaders: { "api-key": envVar("AZURE_OPENAI_API_KEY") },
+    });
+  }
+  return new OpenAI({ apiKey: envVar("OPENAI_API_KEY") });
+}
+
+export function modelName(): string {
+  if (envVar("USE_AZURE_OPENAI_API") === "true") {
+    return envVar("AZURE_OPENAI_DEPLOYMENT_NAME");
+  }
+  return envVar("OPENAI_API_MODEL_NAME");
+}
+
+export function temperature(): number {
+  const envVal =
+    envVar("USE_AZURE_OPENAI_API") === "true"
+      ? envVar("AZURE_OPENAI_TEMPERATURE")
+      : envVar("OPENAI_TEMPERATURE");
+  return envVal !== null ? parseFloat(envVal) : 0.1;
 }
 
 export async function chat_stream(
@@ -103,69 +123,35 @@ export async function chat_stream(
     throw new Error("Chat stream callback is not a function.");
   }
 
-  let llm_client: OpenAI;
+  console.log(`chat_stream - model: ${modelName()}`);
+  const llm_client = openaiClient();
+  const stream = await llm_client.chat.completions.create({
+    model: modelName(),
+    temperature: temperature(),
+    messages: messages,
+    ...(max_tokens !== null && { max_tokens }),
+    stream: true,
+  });
 
-  if (envVar("USE_AZURE_OPENAI_API") === "true") {
-    console.error("WHY ARE YOU HERE?");
-    // console.log(`chat_stream - azure deployment: ${envVar('AZURE_OPENAI_DEPLOYMENT')}`);
+  for await (const chunk of stream) {
+    const content = chunk?.choices?.[0]?.delta?.content ?? null;
 
-    // llm_client = azure_client();
-    // const stream = await llm_client.chat.completions.create({
-    //     model: envVar('AZURE_OPENAI_DEPLOYMENT'),
-    //     temperature: 0.1,
-    //     messages: messages,
-    //     stream: true,
-    // });
+    if (!isNullOrEmpty(content)) {
+      latest_chunk += content;
+      content_so_far += content;
+      chunk_count += 1;
+    }
 
-    // for await (const chunk of stream) {
-    //     const content = (chunk && chunk.choices) ? chunk.choices[0].delta.content : null;
-
-    //     if (content !== null) {
-    //         latest_chunk += content;
-    //         content_so_far += content;
-    //         chunk_count += 1;
-    //     }
-
-    //     if (lapTimer(last_callback) >= callback_interval_seconds ||
-    //         (chunk && chunk.choices && chunk.choices.length > 0
-    //             && chunk.choices[0].finish_reason === 'stop')) {
-    //         last_callback = performance.now();
-    //         callback(latest_chunk);
-    //         latest_chunk = '';
-    //     }
-    // }
-  } else {
-    console.log(`chat_stream - model: ${envVar("OPENAI_API_MODEL_NAME")}`);
-    llm_client = openaiClient();
-    const stream = await llm_client.chat.completions.create({
-      model: envVar("OPENAI_API_MODEL_NAME"),
-      temperature: 0.1,
-      messages: messages,
-      max_tokens: max_tokens,
-      stream: true,
-    });
-
-    for await (const chunk of stream) {
-      const content =
-        chunk && chunk.choices ? chunk.choices[0].delta.content : null;
-
-      if (!isNullOrEmpty(content)) {
-        latest_chunk += content;
-        content_so_far += content;
-        chunk_count += 1;
-      }
-
-      if (
-        lapTimer(last_callback) >= callback_interval_seconds ||
-        (chunk &&
-          chunk.choices &&
-          chunk.choices.length > 0 &&
-          chunk.choices[0].finish_reason === "stop")
-      ) {
-        last_callback = performance.now();
-        callback(latest_chunk);
-        latest_chunk = "";
-      }
+    if (
+      lapTimer(last_callback) >= callback_interval_seconds ||
+      (chunk &&
+        chunk.choices &&
+        chunk.choices.length > 0 &&
+        chunk.choices[0].finish_reason === "stop")
+    ) {
+      last_callback = performance.now();
+      callback(latest_chunk);
+      latest_chunk = "";
     }
   }
 

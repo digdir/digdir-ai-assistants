@@ -31,7 +31,7 @@ const openAI = createOpenAIClient();
 
 const openaiClientInstance = Instructor({
   client: openAI as any,
-  mode: 'FUNCTIONS',
+  mode: 'TOOLS',
   debug: process.env.DEBUG_INSTRUCTOR == 'true',
 });
 

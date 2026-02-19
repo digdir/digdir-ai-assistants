@@ -1,17 +1,16 @@
 import Instructor from "@instructor-ai/instructor";
 import { z } from "zod";
 
-import { openaiClient } from "../llm";
+import { openaiClient, modelName, temperature } from "../llm";
 import { scopedEnvVar } from "../general";
 import { stage1_analyze_query } from "./prompts";
 
 const stageName: string = "DOCS_QA_ANALYZE";
 const envVar = scopedEnvVar(stageName);
 
-// const azureClientInstance = azure_client();
 const openaiClientInstance = Instructor({
   client: openaiClient() as any,
-  mode: "FUNCTIONS",
+  mode: "TOOLS",
   debug: envVar("DEBUG_INSTRUCTOR"),
 });
 
@@ -43,43 +42,30 @@ export async function userInputAnalysis(
   let queryResult: UserQueryAnalysis | null = null;
 
   try {
-    const modelName = envVar("OPENAI_API_MODEL_NAME", "");
-    if (!modelName) {
-      throw new Error(
-        "OPENAI_API_MODEL_NAME environment variable is not set or empty",
-      );
+    const model = modelName();
+    if (!model) {
+      throw new Error("OpenAI model name environment variable is not set");
     }
 
-    if (envVar("USE_AZURE_OPENAI_API", false) === "true") {
-      // queryResult = await azureClientInstance.chat.completions.create({
-      //     model: envVar('AZURE_OPENAI_DEPLOYMENT'),
-      //     response_model: { schema: UserQueryAnalysisSchema, name: "UserQueryAnalysis" },
-      //     temperature: 0.1,
-      //     messages: [
-      //         { role: "system", content: stage1_analyze_query },
-      //         { role: "user", content: userInput },
-      //     ],
-      // });
-      throw new Error("Azure OpenAI integration is not implemented");
-    } else {
-      console.log(`userInputAnalysis: calling OpenAI with model ${modelName}`);
-      queryResult = await openaiClientInstance.chat.completions.create({
-        model: modelName,
-        response_model: {
-          schema: UserQueryAnalysisSchema,
-          name: "UserQueryAnalysis",
-        },
-        temperature: 0.1,
-        messages: [
-          { role: "system", content: stage1_analyze_query },
-          { role: "user", content: `[USER INPUT]\n${userInput}` },
-        ],
-        max_retries: 2,
-      });
-      console.log(
-        `userInputAnalysis: received result of type ${typeof queryResult}`,
-      );
-    }
+    const provider =
+      envVar("USE_AZURE_OPENAI_API") === "true" ? "Azure OpenAI" : "OpenAI";
+    console.log(`userInputAnalysis: calling ${provider} with model ${model}`);
+    queryResult = await openaiClientInstance.chat.completions.create({
+      model,
+      response_model: {
+        schema: UserQueryAnalysisSchema,
+        name: "UserQueryAnalysis",
+      },
+      temperature: temperature(),
+      messages: [
+        { role: "system", content: stage1_analyze_query },
+        { role: "user", content: `[USER INPUT]\n${userInput}` },
+      ],
+      max_retries: 2,
+    });
+    console.log(
+      `userInputAnalysis: received result of type ${typeof queryResult}`,
+    );
   } catch (error) {
     console.error(`userInputAnalysis failed:`, error);
     throw error; // Re-throw to be caught by the calling code

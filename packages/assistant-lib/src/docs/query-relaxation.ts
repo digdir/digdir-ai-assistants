@@ -1,18 +1,14 @@
 import Instructor from "@instructor-ai/instructor";
 import { z } from "zod";
-import {
-  // azure_client,
-  openaiClient,
-} from "../llm";
+import { openaiClient, modelName, temperature } from "../llm";
 import { scopedEnvVar } from "../general";
 
 const stage_name = "DOCS_QA_EXTRACT";
 const envVar = scopedEnvVar(stage_name);
 
-// const azureClient = azure_client();
 const openaiClientInstance = Instructor({
   client: openaiClient() as any,
-  mode: "FUNCTIONS",
+  mode: "TOOLS",
   debug: envVar("DEBUG_INSTRUCTOR"),
 });
 
@@ -30,43 +26,26 @@ export async function queryRelaxation(
 
   const prompt = promptRagQueryRelax;
 
-  if (envVar("USE_AZURE_OPENAI_API", false) == "true") {
-    //         query_result = await azureClient.chat.completions.create({
-    //             model: envVar('AZURE_OPENAI_DEPLOYMENT'),
-    //             response_model: { schema: SearchQueriesSchema, name: "GeneratedSearchQueries" },
-    //             temperature: 0.1,
-    //             max_retries: 0,
-    //             messages: [
-    //                 {
-    //                     role: "system",
-    //                     content: prompt },
-    //                 { role: "user", content: "[User query]\n" + user_input },
-    //             ]
-    //         });
-  } else {
-    console.log(
-      `${stage_name} model name: ${envVar("OPENAI_API_MODEL_NAME", "")}`,
-    );
-    if (envVar("LOG_LEVEL") == "debug") {
-      console.log(`prompt.rag.queryRelax: \n${prompt}`);
-    }
-    query_result = await openaiClientInstance.chat.completions.create({
-      model: envVar("OPENAI_API_MODEL_NAME"),
-      response_model: {
-        schema: QueryRelaxationSchema,
-        name: "QueryRelaxation",
-      },
-      temperature: 0.1,
-      max_retries: 0,
-      messages: [
-        {
-          role: "system",
-          content: prompt,
-        },
-        { role: "user", content: "[User query]\n" + user_input },
-      ],
-    });
+  console.log(`${stage_name} model name: ${modelName()}`);
+  if (envVar("LOG_LEVEL") == "debug") {
+    console.log(`prompt.rag.queryRelax: \n${prompt}`);
   }
+  query_result = await openaiClientInstance.chat.completions.create({
+    model: modelName(),
+    response_model: {
+      schema: QueryRelaxationSchema,
+      name: "QueryRelaxation",
+    },
+    temperature: temperature(),
+    max_retries: 0,
+    messages: [
+      {
+        role: "system",
+        content: prompt,
+      },
+      { role: "user", content: "[User query]\n" + user_input },
+    ],
+  });
 
   if (!query_result) {
     return null;
