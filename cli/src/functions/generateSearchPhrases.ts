@@ -8,13 +8,26 @@ import { Client, Errors } from 'typesense';
 import { config } from '../lib/config';
 import * as typesenseSearch from '../lib/typesense-search';
 import { openaiClient, extractCodeBlockContents } from '@digdir/assistant-lib';
+import OpenAI from 'openai';
 
 import { z } from 'zod';
 import sha1 from 'sha1';
 
 const cfg = config();
 
-const openAI = openaiClient();
+function createOpenAIClient(): OpenAI {
+  if (process.env.USE_AZURE_OPENAI_API === 'true') {
+    return new OpenAI({
+      apiKey: process.env.AZURE_OPENAI_API_KEY,
+      baseURL: `${process.env.AZURE_OPENAI_API_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_NAME}`,
+      defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION },
+      defaultHeaders: { 'api-key': process.env.AZURE_OPENAI_API_KEY },
+    });
+  }
+  return openaiClient();
+}
+
+const openAI = createOpenAIClient();
 
 const openaiClientInstance = Instructor({
   client: openAI as any,
@@ -378,13 +391,22 @@ async function generateSearchPhrases(
       try {
         const content = searchHit.contentMarkdown || '';
 
+        const model = process.env.USE_AZURE_OPENAI_API === 'true'
+          ? (process.env.AZURE_OPENAI_DEPLOYMENT_NAME ?? 'gpt-4o')
+          : (process.env.OPENAI_API_MODEL_NAME ?? 'gpt-4o-2024-08-06');
+
+        const temperatureEnv = process.env.USE_AZURE_OPENAI_API === 'true'
+          ? process.env.AZURE_OPENAI_TEMPERATURE
+          : process.env.OPENAI_TEMPERATURE;
+        const temperature = temperatureEnv !== undefined ? parseFloat(temperatureEnv) : 0.1;
+
         let queryResult = await openaiClientInstance.chat.completions.create({
-          model: 'gpt-4o-2024-08-06',
+          model,
           response_model: {
             schema: SearchPhraseListSchema,
             name: 'SearchPhraseListSchema',
           },
-          temperature: 0.1,
+          temperature,
           messages: [
             { role: 'system', content: 'You are a helpful assistant.' },
             { role: 'user', content: basePrompt + content },
