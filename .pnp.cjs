@@ -4740,10 +4740,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["buffer-equal-constant-time", [\
-      ["patch:buffer-equal-constant-time@npm%3A1.0.1#~/.yarn/patches/buffer-equal-constant-time-npm-1.0.1-41826f3419.patch::version=1.0.1&hash=0769f4", {\
-        "packageLocation": "./.yarn/cache/buffer-equal-constant-time-patch-9f50e87cb2-651ccbd421.zip/node_modules/buffer-equal-constant-time/",\
+      ["npm:1.0.1", {\
+        "packageLocation": "./.yarn/cache/buffer-equal-constant-time-npm-1.0.1-41826f3419-fb2294e64d.zip/node_modules/buffer-equal-constant-time/",\
         "packageDependencies": [\
-          ["buffer-equal-constant-time", "patch:buffer-equal-constant-time@npm%3A1.0.1#~/.yarn/patches/buffer-equal-constant-time-npm-1.0.1-41826f3419.patch::version=1.0.1&hash=0769f4"]\
+          ["buffer-equal-constant-time", "npm:1.0.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -8395,7 +8395,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/jwa-npm-1.4.1-4f19d6572c-5c533540bf.zip/node_modules/jwa/",\
         "packageDependencies": [\
           ["jwa", "npm:1.4.1"],\
-          ["buffer-equal-constant-time", "patch:buffer-equal-constant-time@npm%3A1.0.1#~/.yarn/patches/buffer-equal-constant-time-npm-1.0.1-41826f3419.patch::version=1.0.1&hash=0769f4"],\
+          ["buffer-equal-constant-time", "npm:1.0.1"],\
           ["ecdsa-sig-formatter", "npm:1.0.11"],\
           ["safe-buffer", "npm:5.2.1"]\
         ],\
