@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Markdown styles */
+.markdown-content {
+  @apply max-w-none;
+}
+
+.markdown-content h1 {
+  @apply text-2xl font-bold mb-4;
+}
+
+.markdown-content h2 {
+  @apply text-xl font-bold mb-3;
+}
+
+.markdown-content h3 {
+  @apply text-lg font-bold mb-2;
+}
+
+.markdown-content p {
+  @apply mb-4;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  @apply mb-4 ml-6;
+}
+
+.markdown-content code {
+  @apply bg-gray-100 px-1 py-0.5 rounded text-sm;
+}
+
+.markdown-content pre {
+  @apply bg-gray-100 p-4 rounded overflow-x-auto mb-4;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0;
+}
+
+/* KaTeX math rendering */
+.katex {
+  font-size: 1.1em;
+}
+
+.katex-display {
+  @apply my-4 overflow-x-auto;
+}

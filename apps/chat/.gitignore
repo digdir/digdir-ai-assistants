@@ -1,0 +1,26 @@
+.clj-kondo/
+.lsp/
+.kamal/
+mise.*local.toml
+app/.yarn/
+frontend/.yarn/
+frontend/.pnp.loader.mjs
+frontend/.pnp.cjs
+
+backend-bff/.yarn/
+backend-bff/.pnp.cjs
+backend-bff/.pnp.loader.mjs
+
+
+# OS files
+.DS_Store
+
+# Editor lock files
+.#*
+
+# Java crash logs
+hs_err_pid*.log
+
+# Temporary files
+tmp/
+.calva/output-window/
