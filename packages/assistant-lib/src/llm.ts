@@ -83,13 +83,28 @@ export function azureOpenAI() {
 
 export function openaiClient(): OpenAI {
   if (envVar("USE_AZURE_OPENAI_API") === "true") {
+    const endpoint = envVar("AZURE_OPENAI_API_ENDPOINT");
+    const deployment = envVar("AZURE_OPENAI_DEPLOYMENT_NAME");
+    const apiVersion = envVar("AZURE_OPENAI_API_VERSION");
+    const apiKey = envVar("AZURE_OPENAI_API_KEY");
+    console.warn("[openaiClient] Using Azure OpenAI:", {
+      AZURE_OPENAI_API_ENDPOINT: endpoint,
+      AZURE_OPENAI_DEPLOYMENT_NAME: deployment,
+      AZURE_OPENAI_API_VERSION: apiVersion,
+      AZURE_OPENAI_API_KEY: apiKey ? `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}` : "(not set)",
+    });
     return new OpenAI({
-      apiKey: envVar("AZURE_OPENAI_API_KEY"),
-      baseURL: `${envVar("AZURE_OPENAI_API_ENDPOINT")}/openai/deployments/${envVar("AZURE_OPENAI_DEPLOYMENT_NAME")}`,
-      defaultQuery: { "api-version": envVar("AZURE_OPENAI_API_VERSION") },
-      defaultHeaders: { "api-key": envVar("AZURE_OPENAI_API_KEY") },
+      apiKey: apiKey,
+      baseURL: `${endpoint}/openai/deployments/${deployment}`,
+      defaultQuery: { "api-version": apiVersion },
+      defaultHeaders: { "api-key": apiKey },
     });
   }
+  console.warn("[openaiClient] Using OpenAI:", {
+    OPENAI_API_URL: envVar("OPENAI_API_URL"),
+    OPENAI_API_MODEL_NAME: envVar("OPENAI_API_MODEL_NAME"),
+    OPENAI_API_KEY: envVar("OPENAI_API_KEY") ? "set" : "(not set)",
+  });
   return new OpenAI({ apiKey: envVar("OPENAI_API_KEY") });
 }
 
