@@ -3,29 +3,17 @@ import "./App.css";
 import ChatMessageView from "./components/ChatMessageView";
 import Layout from "./components/Layout"; // Importing the Layout component
 import TopBar from "./components/TopBar"; // Importing the TopBar component
-import supabase from "./supabase/SupabaseClient";
+import ConversationsDashboard from "./components/ConversationsDashboard";
+import { Box, Tab, Tabs } from "@mui/material";
+
+type AppView = "chat" | "dashboard";
 
 function App() {
   const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [selectedChannel, setSelectedChannel] = useState<string>("");
-  const [channels, setChannels] = useState([]); // State for managing channels
-  const [activeChannelId, setActiveChannelId] = useState<string | null>(null); // State for managing active channel ID
+  const [activeView, setActiveView] = useState<AppView>("dashboard");
 
   useEffect(() => {
-    // Fetch channels from the backend or a predefined source
-    const fetchChannels = async () => {
-      console.log("Fetching channels...");
-      const { data, error } = await supabase.from("slack_channel").select("*");
-      if (error) {
-        console.error("Error fetching channels:", error.message, error.details);
-      } else {
-        console.log("Channels fetched successfully.");
-        setChannels(data);
-        setActiveChannelId(data[0]?.id || null);
-      }
-    };
-    fetchChannels();
-
     // Retrieve the last selected team and channel from localStorage
     const storedSelectedTeam = localStorage.getItem("selectedTeam");
     const storedSelectedChannel = localStorage.getItem("selectedChannel");
@@ -49,9 +37,12 @@ function App() {
     setSelectedChannel(channelId);
     // Save the selected channel to localStorage
     localStorage.setItem("selectedChannel", channelId);
-    // Find the channel in the channels state to correctly set the activeChannelId
-    const activeChannel = channels.find((channel) => channel.id === channelId);
-    setActiveChannelId(activeChannel ? activeChannel.id : null);
+  };
+
+  const handleViewChange = (_event: React.SyntheticEvent, value: AppView) => {
+    if (value) {
+      setActiveView(value);
+    }
   };
 
   console.log("App component rendering...");
@@ -64,17 +55,28 @@ function App() {
         onChannelSelect={handleChannelSelect}
       />
       <Layout
-        channels={channels}
-        activeChannelId={activeChannelId}
+        channels={[]}
+        activeChannelId={selectedChannel || null}
         mainContent={
-          <>
-            {selectedChannel && (
+          <Box>
+            <Box sx={{ px: 2, pt: 2 }}>
+              <Tabs value={activeView} onChange={handleViewChange}>
+                <Tab value="dashboard" label="Dashboard" />
+                <Tab value="chat" label="Chat" />
+              </Tabs>
+            </Box>
+
+            {activeView === "dashboard" && (
+              <ConversationsDashboard selectedTeam={selectedTeam} />
+            )}
+
+            {activeView === "chat" && selectedChannel && (
               <ChatMessageView
                 selectedChannel={selectedChannel}
                 selectedTeam={selectedTeam}
               />
             )}
-          </>
+          </Box>
         }
         sideContent={<div>{/* Side content if needed */}</div>}
       ></Layout>

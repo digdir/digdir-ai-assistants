@@ -6,7 +6,7 @@ import {
 import { translate } from "./translate";
 import { isValidUrl, lapTimer, scopedEnvVar, round } from "../general";
 import {} from "./translate";
-import { chat_stream, openaiClient } from "../llm";
+import { chat_stream, openaiClient, modelName, temperature } from "../llm";
 import { typesenseConfig } from "../config/typesense";
 import axios from "axios";
 import { z } from "zod";
@@ -16,7 +16,6 @@ import * as yaml from "js-yaml";
 const stage_name = "DOCS_QA_RAG";
 const envVar = scopedEnvVar(stage_name);
 const cfg = typesenseConfig();
-// const azureClient = azure_client();
 const _openaiClient = openaiClient();
 
 const RagContextRefsSchema = z.object({
@@ -295,9 +294,6 @@ export async function ragPipeline(
     }
   }
 
-  console.log(
-    `Starting RAG structured output chain, llm: ${envVar("OPENAI_API_MODEL_NAME")}`,
-  );
   start = performance.now();
   let english_answer: string = "";
   let translated_answer: string = "";
@@ -315,34 +311,22 @@ export async function ragPipeline(
   }
 
   if (typeof params.stream_callback_msg1 !== "function") {
-    if (envVar("USE_AZURE_OPENAI_API") === "true") {
-      // const chatResponse = await azureClient.chat.completions.create({
-      //     model: envVar('AZURE_OPENAI_DEPLOYMENT'),
-      //     temperature: 0.1,
-      //     max_retries: 0,
-      //     messages: messages
-      // });
-      // english_answer = chatResponse.choices[0].message.content;
-    } else {
-      console.log(
-        `${stage_name} model name: ${envVar("OPENAI_API_MODEL_NAME")}`,
-      );
-      const chatResponse = await _openaiClient.chat.completions.create({
-        model: envVar("OPENAI_API_MODEL_NAME"),
-        temperature: 0.1,
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant.",
-          },
-          {
-            role: "user",
-            content: fullPrompt,
-          },
-        ],
-      });
-      english_answer = chatResponse.choices[0].message.content || "";
-    }
+    console.log(`${stage_name} model name: ${modelName()}`);
+    const chatResponse = await _openaiClient.chat.completions.create({
+      model: modelName(),
+      temperature: temperature(),
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        {
+          role: "user",
+          content: fullPrompt,
+        },
+      ],
+    });
+    english_answer = chatResponse.choices[0].message.content || "";
     translated_answer = english_answer;
     rag_success = true;
   } else {

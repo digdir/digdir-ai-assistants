@@ -17,7 +17,7 @@ import { URL } from 'url';
 import { flatMap } from 'remeda';
 
 const turndownService = new TurndownService();
-const tokenCountWarningThreshold = 20;
+const chunkCountWarningThreshold = 20;
 
 const chunkImportBatchSize = 40;
 const maxChunkLength = 4000;
@@ -29,7 +29,6 @@ const sectionDelimLen = sectionDelim.length;
 let sumTokens = 0;
 let sumDocs = 0;
 let sumChunks = 0;
-let chunksCollectionName = '';
 
 const encoding = get_encoding('cl100k_base');
 
@@ -63,7 +62,7 @@ export async function defaultHandler(
   const startUrl = request.url;
   const processLinks = false;
 
-  chunksCollectionName = collectionName.replace('docs', 'chunks');
+  const chunksCollectionName = collectionName.replace('docs', 'chunks');
   await page.waitForLoadState('networkidle');
 
   const fullPageUrl = page.url();
@@ -161,10 +160,19 @@ export async function defaultHandler(
     currentDocs[0].id == urlHash &&
     currentDocs[0].markdown_checksum == markdown_checksum
   ) {
-    if (currentDocs[0].source_document_url != pageUrl_without_anchor) {
+    if (currentDocs[0].source_document_url && currentDocs[0].source_document_url != pageUrl_without_anchor) {
+      // Both URLs are valid but different — genuine possible redirect
       log.warning(
         `Possible redirect, not updating yet...\noriginal url: ${currentDocs[0].source_document_url}\nnew url:   ${pageUrl_without_anchor}`,
       );
+    } else if (!currentDocs[0].source_document_url) {
+      // source_document_url was stored as undefined — fix it without re-chunking
+      log.info(`[FIX] source_document_url missing, re-indexing url: '${pageUrl_without_anchor}'`);
+      const docResults = await updateDocs([updatedDoc], collectionName);
+      const failedDocs = docResults.filter((result: any) => !result.success);
+      if (failedDocs.length > 0) {
+        log.error(`Upsert to typesense failed for the following urls:\n${failedDocs}`);
+      }
     } else {
       log.info(
         `  [NO CHANGE] tokens: ${tokens.length}, No change for url: ${pageUrl_without_anchor}`,
@@ -205,9 +213,9 @@ async function chunkDocContents(markdown: string, urlHash: string, log: apifyLog
   sumChunks += chunkLengths.length;
   let batch: RagChunk[] = [];
 
-  if ((chunkLengths.length || 0) < tokenCountWarningThreshold) {
+  if (chunkLengths.length < chunkCountWarningThreshold) {
     log.warning(
-      `Only ${chunkLengths.length} tokens extracted\n from doc_num ${urlHash}\n consider verifying the locators for this url.`,
+      `Only ${chunkLengths.length} chunks extracted from doc_num ${urlHash}. Consider verifying the locators for this url.`,
     );
   } else {
     log.info(`   Found ${chunkLengths.length} chunks, uploading...`);
