@@ -16,6 +16,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: prod-slack-digdir
 
     steps:
       - name: Checkout to the branch
@@ -59,8 +60,6 @@ jobs:
             "AZURE_OPENAI_API_VERSION=${{ vars.AZURE_OPENAI_VERSION }}"
             "COLBERT_API_URL=${{ vars.COLBERT_API_URL }}"
             "TYPESENSE_API_HOST=${{ vars.TYPESENSE_API_HOST }}"
-            "TYPESENSE_DOCS_COLLECTION=${{ vars.TYPESENSE_DOCS_COLLECTION }}"
-            "TYPESENSE_DOCS_SEARCH_PHRASE_COLLECTION=${{ vars.TYPESENSE_DOCS_SEARCH_PHRASE_COLLECTION }}"
             "MAX_CONTEXT_DOC_COUNT=${{ vars.MAX_CONTEXT_DOC_COUNT }}"
             "MAX_CONTEXT_LENGTH=${{ vars.MAX_CONTEXT_LENGTH }}"
             "MAX_SOURCE_LENGTH=${{ vars.MAX_SOURCE_LENGTH }}"
