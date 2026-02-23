@@ -4,6 +4,7 @@ import { useMe } from "@/hooks/useAuth";
 import { apiClient } from "@/api/client";
 import { LoginPage } from "@/pages/LoginPage";
 import { HomePage } from "@/pages/HomePage";
+import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -40,6 +41,7 @@ function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/oauth/callback" element={<AuthCallbackPage />} />
 
         <Route
           path="/"

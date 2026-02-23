@@ -84,6 +84,16 @@ class ApiClient {
     return data.user;
   }
 
+  getSlackLoginUrl(): string {
+    return `${this.baseUrl}/auth/slack/start`;
+  }
+
+  completeOAuthLogin(sessionId: string, email: string): User {
+    const normalizedEmail = email.toLowerCase();
+    this.setSession(sessionId, normalizedEmail);
+    return { email: normalizedEmail };
+  }
+
   async logout(): Promise<void> {
     await this.request("/auth/logout", { method: "POST" });
     this.clearSession();

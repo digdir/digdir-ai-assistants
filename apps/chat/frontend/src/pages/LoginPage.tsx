@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLogin } from "@/hooks/useAuth";
+import { apiClient } from "@/api/client";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const login = useLogin();
+  const hasOauthError = searchParams.get("error") === "oauth_failed";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +28,33 @@ export function LoginPage() {
         <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">
           Login
         </h1>
+
+        {hasOauthError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-700">
+              Slack login failed. Please try again or use email login.
+            </p>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = apiClient.getSlackLoginUrl();
+          }}
+          className="w-full bg-[#4A154B] text-white py-3 rounded-md hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:ring-[#4A154B] transition-colors mb-4"
+        >
+          Continue with Slack
+        </button>
+
+        <div className="relative mb-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-2 text-gray-500">Or use email</span>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

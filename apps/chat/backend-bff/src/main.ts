@@ -29,6 +29,7 @@ app.get("/health", (req, res) => {
       allowedDomains: config.allowedDomains,
       clojureApiUrl: config.clojureApiUrl,
       port: config.port,
+      frontendUrls: config.frontendUrls,
     },
   });
 });
@@ -43,6 +44,8 @@ app.get("/", (req, res) => {
       health: "/health",
       auth: {
         login: "POST /auth/login",
+        slackStart: "GET /auth/slack/start",
+        slackCallback: "GET /auth/slack/callback",
         logout: "POST /auth/logout",
         me: "GET /auth/me",
       },
@@ -92,6 +95,7 @@ Endpoints:
   - API:     http://localhost:${config.port}/api/*
 
 Allowed domains: ${config.allowedDomains.join(", ")}
+Frontend URLs:   ${config.frontendUrls.join(", ")}
 Clojure API:     ${config.clojureApiUrl}
 
 Ready to accept connections!

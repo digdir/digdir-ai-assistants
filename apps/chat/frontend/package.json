@@ -14,6 +14,7 @@
     "@digdir/designsystemet-react": "*",
     "@digdir/designsystemet-theme": "*",
     "@tanstack/react-query": "^5.17.0",
+    "baseline-browser-mapping": "^2.10.0",
     "katex": "^0.16.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

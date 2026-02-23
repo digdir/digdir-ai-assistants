@@ -46,6 +46,12 @@ RAG_API_KEY=rag_your_api_key_here
 SESSION_SECRET=random-secret-here
 PORT=3000
 FRONTEND_URL=http://localhost:5173
+# Optional for multiple allowed origins (first is OAuth redirect target):
+# FRONTEND_URLS=http://localhost:5173,https://your-tunnel.example.com
+SLACK_CLIENT_ID=
+SLACK_CLIENT_SECRET=
+SLACK_REDIRECT_URI=http://localhost:3000/auth/slack/callback
+SLACK_TEAM_ID=
 NODE_ENV=development
 ```
 
@@ -89,6 +95,12 @@ Get current user.
 
 **Headers:**
 - `X-Session-ID: <session-id>`
+
+#### GET `/auth/slack/start`
+Starts Slack OpenID Connect login flow.
+
+#### GET `/auth/slack/callback`
+Slack OAuth callback endpoint. Exchanges code for user identity, validates domain/workspace, then redirects to frontend callback.
 
 ### API Proxy (Protected)
 
@@ -159,6 +171,8 @@ Make sure to set these in your production environment:
 - `NODE_ENV=production`
 - `RAG_API_KEY` (required in production)
 - `SESSION_SECRET` (use a strong random value)
+- `SLACK_CLIENT_ID` and `SLACK_CLIENT_SECRET` (if using Slack login)
+- `SLACK_REDIRECT_URI` (must match Slack app config)
 - Other configuration as needed
 
 ## Project Structure

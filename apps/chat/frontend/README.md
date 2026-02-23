@@ -126,6 +126,7 @@ VITE_API_URL=
 The frontend communicates with the Node.js BFF via REST API:
 
 ### Auth Endpoints
+- `GET /auth/slack/start` - Start Slack login
 - `POST /auth/login` - Login with email
 - `POST /auth/logout` - Logout
 - `GET /auth/me` - Get current user
@@ -147,9 +148,9 @@ The frontend communicates with the Node.js BFF via REST API:
 
 ## Authentication Flow
 
-1. User enters email on login page
-2. Email domain is checked against allowlist (server-side)
-3. Session ID is returned and stored in localStorage
+1. User clicks Slack login (or uses email fallback)
+2. BFF validates identity and domain allowlist
+3. Session ID is returned to frontend and stored in localStorage
 4. Session ID is sent with all API requests via `X-Session-ID` header
 5. Session expires after 7 days
 
@@ -195,6 +196,10 @@ server: {
   },
 }
 ```
+
+Optional env vars for tunneled dev:
+- `VITE_BFF_URL` (default `http://localhost:3000`)
+- `VITE_ALLOWED_HOST` (for Vite host allowlist, e.g. your tunnel domain)
 
 ## Deployment
 

@@ -1,10 +1,41 @@
 import { Router } from "express";
+import { randomUUID } from "crypto";
 import { config } from "../config.js";
 import { createSession, deleteSession } from "../utils/session.js";
 import { authMiddleware } from "../middleware/auth.js";
 import type { LoginResponse, MeResponse } from "../types/api.js";
 
 const auth = Router();
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+const oauthStates = new Map<string, number>();
+
+interface SlackTokenResponse {
+  ok: boolean;
+  error?: string;
+  access_token?: string;
+}
+
+interface SlackUserInfoResponse {
+  ok: boolean;
+  error?: string;
+  email?: string;
+  "https://slack.com/team_id"?: string;
+}
+
+function isAllowedDomain(email: string): boolean {
+  const domain = email.split("@")[1].toLowerCase();
+  const normalizedAllowedDomains = config.allowedDomains.map(d => d.toLowerCase());
+  return normalizedAllowedDomains.includes(domain);
+}
+
+function cleanupExpiredOauthStates() {
+  const now = Date.now();
+  for (const [state, createdAt] of oauthStates.entries()) {
+    if (now - createdAt > OAUTH_STATE_TTL_MS) {
+      oauthStates.delete(state);
+    }
+  }
+}
 
 /**
  * POST /auth/login
@@ -25,12 +56,9 @@ auth.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Invalid email format" });
     }
 
-    // Extract domain from email
-    const domain = email.split("@")[1].toLowerCase();
-
     // Check if domain is allowed
-    const normalizedAllowedDomains = config.allowedDomains.map(d => d.toLowerCase());
-    if (!normalizedAllowedDomains.includes(domain)) {
+    const domain = email.split("@")[1].toLowerCase();
+    if (!isAllowedDomain(email)) {
       console.log(`Login attempt from unauthorized domain: ${domain}`);
       return res.status(403).json({
         error: "Domain not authorized",
@@ -51,6 +79,114 @@ auth.post("/login", async (req, res) => {
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Login failed" });
+  }
+});
+
+/**
+ * GET /auth/slack/start
+ * Starts Slack OpenID Connect flow
+ */
+auth.get("/slack/start", async (req, res) => {
+  if (!config.slackClientId || !config.slackClientSecret) {
+    return res.status(500).json({ error: "Slack authentication is not configured" });
+  }
+
+  cleanupExpiredOauthStates();
+  const state = randomUUID();
+  oauthStates.set(state, Date.now());
+
+  const authUrl = new URL("https://slack.com/openid/connect/authorize");
+  authUrl.searchParams.set("response_type", "code");
+  authUrl.searchParams.set("client_id", config.slackClientId);
+  authUrl.searchParams.set("redirect_uri", config.slackRedirectUri);
+  authUrl.searchParams.set("scope", "openid email profile");
+  authUrl.searchParams.set("state", state);
+
+  if (config.slackTeamId) {
+    authUrl.searchParams.set("team", config.slackTeamId);
+  }
+
+  return res.redirect(authUrl.toString());
+});
+
+/**
+ * GET /auth/slack/callback
+ * Completes Slack OpenID Connect flow and creates an app session
+ */
+auth.get("/slack/callback", async (req, res) => {
+  try {
+    const code = req.query.code;
+    const state = req.query.state;
+
+    if (typeof code !== "string" || typeof state !== "string") {
+      return res.status(400).json({ error: "Missing OAuth code or state" });
+    }
+
+    cleanupExpiredOauthStates();
+    const stateCreatedAt = oauthStates.get(state);
+    oauthStates.delete(state);
+
+    if (!stateCreatedAt || Date.now() - stateCreatedAt > OAUTH_STATE_TTL_MS) {
+      return res.status(400).json({ error: "Invalid or expired OAuth state" });
+    }
+
+    const tokenResponse = await fetch("https://slack.com/api/openid.connect.token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: config.slackClientId,
+        client_secret: config.slackClientSecret,
+        grant_type: "authorization_code",
+        redirect_uri: config.slackRedirectUri,
+      }).toString(),
+    });
+
+    const tokenData = (await tokenResponse.json()) as SlackTokenResponse;
+    if (!tokenResponse.ok || !tokenData.ok || !tokenData.access_token) {
+      console.error("Slack token exchange failed:", tokenData.error || tokenResponse.statusText);
+      return res.status(401).json({ error: "Slack authentication failed" });
+    }
+
+    const userInfoResponse = await fetch("https://slack.com/api/openid.connect.userInfo", {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
+
+    const userInfoData = (await userInfoResponse.json()) as SlackUserInfoResponse;
+    if (!userInfoResponse.ok || !userInfoData.ok || !userInfoData.email) {
+      console.error("Slack user info lookup failed:", userInfoData.error || userInfoResponse.statusText);
+      return res.status(401).json({ error: "Slack authentication failed" });
+    }
+
+    if (config.slackTeamId && userInfoData["https://slack.com/team_id"] !== config.slackTeamId) {
+      return res.status(403).json({ error: "Unauthorized Slack workspace" });
+    }
+
+    const email = userInfoData.email.toLowerCase();
+    if (!isAllowedDomain(email)) {
+      const domain = email.split("@")[1];
+      console.log(`Slack login from unauthorized domain: ${domain}`);
+      return res.status(403).json({
+        error: "Domain not authorized",
+        message: `The email domain "${domain}" is not authorized to access this application.`,
+      });
+    }
+
+    const sessionId = await createSession({ email });
+    const redirectUrl = new URL("/oauth/callback", config.frontendUrls[0]);
+    redirectUrl.hash = new URLSearchParams({
+      sessionId,
+      email,
+    }).toString();
+
+    return res.redirect(redirectUrl.toString());
+  } catch (error) {
+    console.error("Slack callback error:", error);
+    return res.status(500).json({ error: "Slack authentication failed" });
   }
 });
 
