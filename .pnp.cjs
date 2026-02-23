@@ -156,15 +156,15 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@azure-rest/core-client", [\
-      ["npm:1.4.0", {\
-        "packageLocation": "./.yarn/cache/@azure-rest-core-client-npm-1.4.0-f7158a73d0-be389a5ba3.zip/node_modules/@azure-rest/core-client/",\
+      ["npm:2.5.1", {\
+        "packageLocation": "./.yarn/cache/@azure-rest-core-client-npm-2.5.1-33ab19c97e-6aacdbc499.zip/node_modules/@azure-rest/core-client/",\
         "packageDependencies": [\
-          ["@azure-rest/core-client", "npm:1.4.0"],\
+          ["@azure-rest/core-client", "npm:2.5.1"],\
           ["@azure/abort-controller", "npm:2.1.2"],\
-          ["@azure/core-auth", "npm:1.9.0"],\
-          ["@azure/core-rest-pipeline", "npm:1.17.0"],\
-          ["@azure/core-tracing", "npm:1.2.0"],\
-          ["@azure/core-util", "npm:1.11.0"],\
+          ["@azure/core-auth", "npm:1.10.1"],\
+          ["@azure/core-rest-pipeline", "npm:1.22.2"],\
+          ["@azure/core-tracing", "npm:1.3.1"],\
+          ["@typespec/ts-http-runtime", "npm:0.3.3"],\
           ["tslib", "npm:2.8.1"]\
         ],\
         "linkType": "HARD"\
@@ -181,86 +181,72 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@azure/core-auth", [\
-      ["npm:1.9.0", {\
-        "packageLocation": "./.yarn/cache/@azure-core-auth-npm-1.9.0-456e72b42c-b7d8f33b81.zip/node_modules/@azure/core-auth/",\
+      ["npm:1.10.1", {\
+        "packageLocation": "./.yarn/cache/@azure-core-auth-npm-1.10.1-d750410a50-83fd96e43c.zip/node_modules/@azure/core-auth/",\
         "packageDependencies": [\
-          ["@azure/core-auth", "npm:1.9.0"],\
+          ["@azure/core-auth", "npm:1.10.1"],\
           ["@azure/abort-controller", "npm:2.1.2"],\
-          ["@azure/core-util", "npm:1.11.0"],\
+          ["@azure/core-util", "npm:1.13.1"],\
           ["tslib", "npm:2.8.1"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@azure/core-rest-pipeline", [\
-      ["npm:1.17.0", {\
-        "packageLocation": "./.yarn/cache/@azure-core-rest-pipeline-npm-1.17.0-aa1ea9ace7-5dabbdbe0c.zip/node_modules/@azure/core-rest-pipeline/",\
+      ["npm:1.22.2", {\
+        "packageLocation": "./.yarn/cache/@azure-core-rest-pipeline-npm-1.22.2-0f1afee05f-b5767a09ab.zip/node_modules/@azure/core-rest-pipeline/",\
         "packageDependencies": [\
-          ["@azure/core-rest-pipeline", "npm:1.17.0"],\
+          ["@azure/core-rest-pipeline", "npm:1.22.2"],\
           ["@azure/abort-controller", "npm:2.1.2"],\
-          ["@azure/core-auth", "npm:1.9.0"],\
-          ["@azure/core-tracing", "npm:1.2.0"],\
-          ["@azure/core-util", "npm:1.11.0"],\
-          ["@azure/logger", "npm:1.1.4"],\
-          ["http-proxy-agent", "npm:7.0.2"],\
-          ["https-proxy-agent", "npm:7.0.5"],\
-          ["tslib", "npm:2.8.1"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["@azure/core-sse", [\
-      ["npm:2.1.3", {\
-        "packageLocation": "./.yarn/cache/@azure-core-sse-npm-2.1.3-1b40c5c080-364df0e6ff.zip/node_modules/@azure/core-sse/",\
-        "packageDependencies": [\
-          ["@azure/core-sse", "npm:2.1.3"],\
+          ["@azure/core-auth", "npm:1.10.1"],\
+          ["@azure/core-tracing", "npm:1.3.1"],\
+          ["@azure/core-util", "npm:1.13.1"],\
+          ["@azure/logger", "npm:1.3.0"],\
+          ["@typespec/ts-http-runtime", "npm:0.3.3"],\
           ["tslib", "npm:2.8.1"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@azure/core-tracing", [\
-      ["npm:1.2.0", {\
-        "packageLocation": "./.yarn/cache/@azure-core-tracing-npm-1.2.0-cae64582fc-7cd114b3c1.zip/node_modules/@azure/core-tracing/",\
+      ["npm:1.3.1", {\
+        "packageLocation": "./.yarn/cache/@azure-core-tracing-npm-1.3.1-eb2949b9c4-0cb26db9ab.zip/node_modules/@azure/core-tracing/",\
         "packageDependencies": [\
-          ["@azure/core-tracing", "npm:1.2.0"],\
+          ["@azure/core-tracing", "npm:1.3.1"],\
           ["tslib", "npm:2.8.1"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@azure/core-util", [\
-      ["npm:1.11.0", {\
-        "packageLocation": "./.yarn/cache/@azure-core-util-npm-1.11.0-56c728e23b-245c93ec7f.zip/node_modules/@azure/core-util/",\
+      ["npm:1.13.1", {\
+        "packageLocation": "./.yarn/cache/@azure-core-util-npm-1.13.1-f6d65e92ea-37067621cd.zip/node_modules/@azure/core-util/",\
         "packageDependencies": [\
-          ["@azure/core-util", "npm:1.11.0"],\
+          ["@azure/core-util", "npm:1.13.1"],\
           ["@azure/abort-controller", "npm:2.1.2"],\
+          ["@typespec/ts-http-runtime", "npm:0.3.3"],\
           ["tslib", "npm:2.8.1"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@azure/logger", [\
-      ["npm:1.1.4", {\
-        "packageLocation": "./.yarn/cache/@azure-logger-npm-1.1.4-957abd6a95-5bc7792ef3.zip/node_modules/@azure/logger/",\
+      ["npm:1.3.0", {\
+        "packageLocation": "./.yarn/cache/@azure-logger-npm-1.3.0-d53081e040-aaa6a88fd4.zip/node_modules/@azure/logger/",\
         "packageDependencies": [\
-          ["@azure/logger", "npm:1.1.4"],\
+          ["@azure/logger", "npm:1.3.0"],\
+          ["@typespec/ts-http-runtime", "npm:0.3.3"],\
           ["tslib", "npm:2.8.1"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["@azure/openai", [\
-      ["npm:1.0.0-beta.13", {\
-        "packageLocation": "./.yarn/cache/@azure-openai-npm-1.0.0-beta.13-bc16cec0ca-3235651696.zip/node_modules/@azure/openai/",\
+      ["npm:2.0.0", {\
+        "packageLocation": "./.yarn/cache/@azure-openai-npm-2.0.0-e30be8d099-b4b5cdb07f.zip/node_modules/@azure/openai/",\
         "packageDependencies": [\
-          ["@azure/openai", "npm:1.0.0-beta.13"],\
-          ["@azure-rest/core-client", "npm:1.4.0"],\
-          ["@azure/core-auth", "npm:1.9.0"],\
-          ["@azure/core-rest-pipeline", "npm:1.17.0"],\
-          ["@azure/core-sse", "npm:2.1.3"],\
-          ["@azure/core-util", "npm:1.11.0"],\
-          ["@azure/logger", "npm:1.1.4"],\
+          ["@azure/openai", "npm:2.0.0"],\
+          ["@azure-rest/core-client", "npm:2.5.1"],\
           ["tslib", "npm:2.8.1"]\
         ],\
         "linkType": "HARD"\
@@ -1246,7 +1232,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/assistant-lib/",\
         "packageDependencies": [\
           ["@digdir/assistant-lib", "workspace:packages/assistant-lib"],\
-          ["@azure/openai", "npm:1.0.0-beta.13"],\
+          ["@azure/openai", "npm:2.0.0"],\
           ["@babel/runtime", "npm:7.26.0"],\
           ["@instructor-ai/instructor", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:1.6.0"],\
           ["@supabase/supabase-js", "npm:2.46.1"],\
@@ -1273,7 +1259,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./apps/slack-app/",\
         "packageDependencies": [\
           ["@digdir/assistant-slack-app", "workspace:apps/slack-app"],\
-          ["@azure/openai", "npm:1.0.0-beta.13"],\
+          ["@azure/openai", "npm:2.0.0"],\
           ["@babel/runtime", "npm:7.26.0"],\
           ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=14338e54e63d85151e9065d28b25caa778b9a73a"],\
           ["@digdir/assistant-lib", "workspace:packages/assistant-lib"],\
@@ -4032,6 +4018,18 @@ const RAW_RUNTIME_STATE =
           ["@typescript-eslint/visitor-keys", "npm:8.13.0"],\
           ["@typescript-eslint/types", "npm:8.13.0"],\
           ["eslint-visitor-keys", "npm:3.4.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@typespec/ts-http-runtime", [\
+      ["npm:0.3.3", {\
+        "packageLocation": "./.yarn/cache/@typespec-ts-http-runtime-npm-0.3.3-33e0eab586-84cc402c6f.zip/node_modules/@typespec/ts-http-runtime/",\
+        "packageDependencies": [\
+          ["@typespec/ts-http-runtime", "npm:0.3.3"],\
+          ["http-proxy-agent", "npm:7.0.2"],\
+          ["https-proxy-agent", "npm:7.0.5"],\
+          ["tslib", "npm:2.8.1"]\
         ],\
         "linkType": "HARD"\
       }]\
