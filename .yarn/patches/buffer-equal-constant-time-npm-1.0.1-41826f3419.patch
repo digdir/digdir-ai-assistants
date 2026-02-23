@@ -1,0 +1,27 @@
+diff --git a/index.js b/index.js
+index 5462c1f830bdbe79bf2b1fcfd811cd9799b4dd11..3b91481cb3e5d2919c3e4ca9bdd68f1c5effe188 100644
+--- a/index.js
++++ b/index.js
+@@ -28,14 +28,19 @@ function bufferEq(a, b) {
+ }
+ 
+ bufferEq.install = function() {
+-  Buffer.prototype.equal = SlowBuffer.prototype.equal = function equal(that) {
++  Buffer.prototype.equal = function equal(that) {
+     return bufferEq(this, that);
+   };
++  if (SlowBuffer) {
++    SlowBuffer.prototype.equal = Buffer.prototype.equal;
++  }
+ };
+ 
+ var origBufEqual = Buffer.prototype.equal;
+-var origSlowBufEqual = SlowBuffer.prototype.equal;
++var origSlowBufEqual = SlowBuffer && SlowBuffer.prototype.equal;
+ bufferEq.restore = function() {
+   Buffer.prototype.equal = origBufEqual;
+-  SlowBuffer.prototype.equal = origSlowBufEqual;
++  if (SlowBuffer) {
++    SlowBuffer.prototype.equal = origSlowBufEqual;
++  }
+ };
