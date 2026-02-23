@@ -1,4 +1,4 @@
-name: prod-slack-altinn - Auto deploy
+name: prod-slack-digdir - Auto deploy
 
 # When this action will be executed
 on:
