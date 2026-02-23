@@ -1255,7 +1255,7 @@ const RAW_RUNTIME_STATE =
           ["axios", "npm:1.7.7"],\
           ["dataclass", "npm:2.1.1"],\
           ["js-yaml", "npm:4.1.0"],\
-          ["lodash", "npm:4.17.21"],\
+          ["lodash", "npm:4.17.23"],\
           ["openai", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:4.79.0"],\
           ["prettier", "npm:3.3.3"],\
           ["remeda", "npm:2.17.0"],\
@@ -1296,7 +1296,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-config-prettier", "virtual:a20587c5c30dd389a37ca4e307e53acdde0b18298a5e50a6e2a5c2be058069ab5cdba932fd9656e883313d381df18e1b0ff20704b5ca65ff278c6517a2b94927#npm:9.1.0"],\
           ["express", "npm:4.21.2"],\
           ["js-yaml", "npm:4.1.0"],\
-          ["lodash", "npm:4.17.21"],\
+          ["lodash", "npm:4.17.23"],\
           ["nodemon", "npm:3.1.7"],\
           ["openai", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:4.79.0"],\
           ["path-to-regexp", "npm:6.3.0"],\
@@ -2892,7 +2892,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@sapphire/shapeshift", "npm:3.9.7"],\
           ["fast-deep-equal", "npm:3.1.3"],\
-          ["lodash", "npm:4.17.21"]\
+          ["lodash", "npm:4.17.23"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -7612,7 +7612,7 @@ const RAW_RUNTIME_STATE =
           ["cli-width", "npm:3.0.0"],\
           ["external-editor", "npm:3.1.0"],\
           ["figures", "npm:3.2.0"],\
-          ["lodash", "npm:4.17.21"],\
+          ["lodash", "npm:4.17.23"],\
           ["mute-stream", "npm:0.0.8"],\
           ["ora", "npm:5.4.1"],\
           ["run-async", "npm:2.4.1"],\
@@ -8476,10 +8476,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["lodash", [\
-      ["npm:4.17.21", {\
-        "packageLocation": "./.yarn/cache/lodash-npm-4.17.21-6382451519-d8cbea072b.zip/node_modules/lodash/",\
+      ["npm:4.17.23", {\
+        "packageLocation": "./.yarn/cache/lodash-npm-4.17.23-50bdb1c01a-1264a90469.zip/node_modules/lodash/",\
         "packageDependencies": [\
-          ["lodash", "npm:4.17.21"]\
+          ["lodash", "npm:4.17.23"]\
         ],\
         "linkType": "HARD"\
       }]\
