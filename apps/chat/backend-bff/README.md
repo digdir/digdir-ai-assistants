@@ -44,23 +44,28 @@ ALLOWED_DOMAINS=yourcompany.com,example.org
 RAG_API_URL=http://localhost:8080
 RAG_API_KEY=rag_your_api_key_here
 SESSION_SECRET=random-secret-here
-PORT=3000
-FRONTEND_URL=http://localhost:5173
-# Optional for multiple allowed origins (first is OAuth redirect target):
-# FRONTEND_URLS=http://localhost:5173,https://your-tunnel.example.com
+PORT=5173
+FRONTEND_URL=http://localhost:3000
+# Optional for multiple allowed origins:
+# FRONTEND_URLS=http://localhost:3000,https://your-tunnel.example.com
 SLACK_CLIENT_ID=
 SLACK_CLIENT_SECRET=
-SLACK_REDIRECT_URI=http://localhost:3000/auth/slack/callback
+SLACK_REDIRECT_URI=http://localhost:5173/auth/slack/callback
 SLACK_TEAM_ID=
 NODE_ENV=development
 ```
+
+`SLACK_REDIRECT_URI` must point to the BFF callback endpoint that Slack should call back to.
+The BFF then redirects the browser back to the frontend origin that initiated the Slack login flow.
 
 4. Run development server:
 ```bash
 npm run dev
 ```
 
-The server will start on http://localhost:3000
+The server will start on http://localhost:5173
+
+If you already have an older local `.env`, update `PORT`, `FRONTEND_URL` and `SLACK_REDIRECT_URI` to match the current dev setup above.
 
 ## API Endpoints
 
@@ -100,7 +105,7 @@ Get current user.
 Starts Slack OpenID Connect login flow.
 
 #### GET `/auth/slack/callback`
-Slack OAuth callback endpoint. Exchanges code for user identity, validates domain/workspace, then redirects to frontend callback.
+Slack OAuth callback endpoint. Exchanges the code for user identity, validates domain/workspace, creates an app session, then redirects back to the initiating frontend origin with the session encoded in the URL fragment.
 
 ### API Proxy (Protected)
 

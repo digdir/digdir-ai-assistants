@@ -60,8 +60,10 @@ Node.js + Express backend-for-frontend providing:
    ```
 
 3. **Access the application:**
-   - Frontend: http://localhost:5173
-   - Backend BFF: http://localhost:3000
+   - Frontend: http://localhost:3000
+   - Backend BFF: http://localhost:5173
+
+If you already have an older local `.env`, update your frontend/BFF port settings and Slack redirect URI to match the current development defaults.
 
 ## Development
 

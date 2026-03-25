@@ -28,6 +28,7 @@ app.get("/health", (req, res) => {
     config: {
       allowedDomains: config.allowedDomains,
       clojureApiUrl: config.clojureApiUrl,
+      hasClojureApiKey: !!config.clojureApiKey,
       port: config.port,
       frontendUrls: config.frontendUrls,
     },
@@ -97,6 +98,7 @@ Endpoints:
 Allowed domains: ${config.allowedDomains.join(", ")}
 Frontend URLs:   ${config.frontendUrls.join(", ")}
 Clojure API:     ${config.clojureApiUrl}
+API key set:     ${config.clojureApiKey ? "yes" : "no"}
 
 Ready to accept connections!
 `);

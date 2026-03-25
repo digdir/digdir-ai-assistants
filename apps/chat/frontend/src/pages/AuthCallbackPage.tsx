@@ -23,6 +23,7 @@ export function AuthCallbackPage() {
       return;
     }
 
+    window.history.replaceState(null, "", "/oauth/callback");
     const user = apiClient.completeOAuthLogin(sessionId, email);
     setUser(user);
     navigate("/", { replace: true });

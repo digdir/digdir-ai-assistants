@@ -21,13 +21,19 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   const sessionId = req.header("X-Session-ID");
 
   if (!sessionId) {
-    return res.status(401).json({ error: "No session ID provided" });
+    return res.status(401).json({
+      error: "No session ID provided",
+      code: "SESSION_MISSING",
+    });
   }
 
   const session = await getSession(sessionId);
 
   if (!session) {
-    return res.status(401).json({ error: "Invalid or expired session" });
+    return res.status(401).json({
+      error: "Invalid or expired session",
+      code: "SESSION_INVALID",
+    });
   }
 
   // Add session data to request

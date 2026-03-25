@@ -67,9 +67,9 @@ npm install
 npm run dev
 ```
 
-The app will be available at http://localhost:5173
+The app will be available at http://localhost:3000
 
-During development, API requests are proxied to the Node.js BFF at `http://localhost:3000`.
+During development, API requests are proxied to the Node.js BFF at `http://localhost:5173`.
 
 ### Build for Production
 
@@ -149,10 +149,11 @@ The frontend communicates with the Node.js BFF via REST API:
 ## Authentication Flow
 
 1. User clicks Slack login (or uses email fallback)
-2. BFF validates identity and domain allowlist
-3. Session ID is returned to frontend and stored in localStorage
-4. Session ID is sent with all API requests via `X-Session-ID` header
-5. Session expires after 7 days
+2. Frontend sends the current origin to `GET /auth/slack/start`
+3. BFF completes Slack OpenID Connect, validates the identity and domain allowlist, and redirects back to the initiating frontend origin
+4. Frontend stores the returned session ID in localStorage
+5. Session ID is sent with all API requests via `X-Session-ID` header
+6. Session expires after 7 days
 
 ## State Management
 
@@ -185,20 +186,20 @@ npm run lint
 ```
 
 ### API Proxy
-In development, `/api` and `/auth` requests are proxied to `http://localhost:3000` (Node.js BFF).
+In development, `/api` and `/auth` requests are proxied to `http://localhost:5173` (Node.js BFF).
 
 Configure in `vite.config.ts`:
 ```typescript
 server: {
   proxy: {
-    '/api': 'http://localhost:3000',
-    '/auth': 'http://localhost:3000',
+    '/api': 'http://localhost:5173',
+    '/auth': 'http://localhost:5173',
   },
 }
 ```
 
 Optional env vars for tunneled dev:
-- `VITE_BFF_URL` (default `http://localhost:3000`)
+- `VITE_BFF_URL` (default `http://localhost:5173`)
 - `VITE_ALLOWED_HOST` (for Vite host allowlist, e.g. your tunnel domain)
 
 ## Deployment

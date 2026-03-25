@@ -2,6 +2,8 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+const port = parseInt(process.env.PORT || "5173");
+
 export const config = {
   // Allowed email domains for authentication
   allowedDomains: process.env.ALLOWED_DOMAINS?.split(",").map(d => d.trim()) || [
@@ -16,7 +18,7 @@ export const config = {
   sessionSecret: process.env.SESSION_SECRET || "dev-secret-change-in-production",
 
   // Server port
-  port: parseInt(process.env.PORT || "5173"),
+  port,
 
   // Frontend URL for redirects and CORS (first value is used for redirects)
   frontendUrls:
@@ -27,12 +29,18 @@ export const config = {
   slackClientId: process.env.SLACK_CLIENT_ID || "",
   slackClientSecret: process.env.SLACK_CLIENT_SECRET || "",
   slackRedirectUri:
-    process.env.SLACK_REDIRECT_URI || "http://localhost:3000/auth/slack/callback",
+    process.env.SLACK_REDIRECT_URI || `http://localhost:${port}/auth/slack/callback`,
   slackTeamId: process.env.SLACK_TEAM_ID || "",
 };
 
 // Validate required configuration
-if (!config.clojureApiKey && process.env.NODE_ENV === "production") {
-  console.error("ERROR: RAG_API_KEY is required in production");
-  process.exit(1);
+if (!config.clojureApiKey) {
+  const message = "RAG_API_KEY is not configured; proxied API requests will fail";
+
+  if (process.env.NODE_ENV === "production") {
+    console.error(`ERROR: ${message}`);
+    process.exit(1);
+  }
+
+  console.warn(`WARNING: ${message}`);
 }

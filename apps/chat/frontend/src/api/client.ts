@@ -45,6 +45,43 @@ class ApiClient {
     return this.userEmail;
   }
 
+  private getDefaultCacheMode(endpoint: string): RequestCache | undefined {
+    return endpoint.startsWith("/auth/") ? "no-store" : undefined;
+  }
+
+  private isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+  }
+
+  private getErrorMessage(errorData: unknown, fallback: string): string {
+    if (
+      this.isObject(errorData) &&
+      typeof errorData.error === "string"
+    ) {
+      return errorData.error;
+    }
+
+    return fallback;
+  }
+
+  private async handleErrorResponse(response: Response, fallbackMessage: string): Promise<never> {
+    const errorData = await response.json().catch(() => ({}));
+    const errorCode =
+      this.isObject(errorData) && typeof errorData.code === "string"
+        ? errorData.code
+        : undefined;
+
+    if (
+      response.status === 401 &&
+      (errorCode === "SESSION_MISSING" || errorCode === "SESSION_INVALID")
+    ) {
+      this.clearSession();
+      window.location.href = "/login";
+    }
+
+    throw new Error(this.getErrorMessage(errorData, fallbackMessage));
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -57,17 +94,12 @@ class ApiClient {
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
+      cache: options.cache ?? this.getDefaultCacheMode(endpoint),
       headers,
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        this.clearSession();
-        window.location.href = "/login";
-      }
-
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `API error: ${response.statusText}`);
+      await this.handleErrorResponse(response, `API error: ${response.statusText}`);
     }
 
     return await response.json();
@@ -85,7 +117,11 @@ class ApiClient {
   }
 
   getSlackLoginUrl(): string {
-    return `${this.baseUrl}/auth/slack/start`;
+    const params =
+      typeof window !== "undefined"
+        ? `?${new URLSearchParams({ returnTo: window.location.origin }).toString()}`
+        : "";
+    return `${this.baseUrl}/auth/slack/start${params}`;
   }
 
   completeOAuthLogin(sessionId: string, email: string): User {
@@ -158,6 +194,7 @@ class ApiClient {
       `${this.baseUrl}/api/rag`,
       {
         method: "POST",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           ...(this.sessionId && { "X-Session-ID": this.sessionId }),
@@ -174,11 +211,10 @@ class ApiClient {
     );
 
     if (!response.ok) {
-      if (response.status === 401) {
-        this.clearSession();
-        window.location.href = "/login";
-      }
-      throw new Error(`Failed to send message: ${response.statusText}`);
+      await this.handleErrorResponse(
+        response,
+        `Failed to send message: ${response.statusText}`
+      );
     }
 
     const reader = response.body?.getReader();

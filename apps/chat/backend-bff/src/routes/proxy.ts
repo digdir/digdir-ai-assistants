@@ -13,13 +13,20 @@ async function proxyRequest(
   path: string,
   options: RequestInit = {}
 ): Promise<globalThis.Response> {
+  if (!config.clojureApiKey) {
+    throw new Error("RAG_API_KEY is not configured");
+  }
+
   const userEmail = req.userEmail;
+  if (!userEmail) {
+    throw new Error("Authenticated user email is missing");
+  }
 
   const url = `${config.clojureApiUrl}${path}`;
   const headers = {
     ...options.headers,
     "X-API-Key": config.clojureApiKey,
-    "X-User-Email": userEmail!, // Pass user context to Clojure
+    "X-User-Email": userEmail,
     "Content-Type": "application/json",
   };
 

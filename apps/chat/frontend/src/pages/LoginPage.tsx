@@ -1,14 +1,30 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useLogin } from "@/hooks/useAuth";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { useLogin, useMe } from "@/hooks/useAuth";
 import { apiClient } from "@/api/client";
+import { useAuthStore } from "@/stores/auth";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const login = useLogin();
+  const { isAuthenticated, user } = useAuthStore();
+  const hasStoredSession = !!apiClient.getSessionId();
+  const { data: me, isLoading: isCheckingSession } = useMe();
   const hasOauthError = searchParams.get("error") === "oauth_failed";
+
+  if (isCheckingSession && hasStoredSession) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-gray-600">Checking session...</div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated || user || me) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

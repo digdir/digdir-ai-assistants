@@ -6,6 +6,7 @@ app/.yarn/
 frontend/.yarn/
 frontend/.pnp.loader.mjs
 frontend/.pnp.cjs
+frontend/package-lock.json
 
 backend-bff/.yarn/
 backend-bff/.pnp.cjs

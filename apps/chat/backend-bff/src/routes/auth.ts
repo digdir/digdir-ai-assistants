@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Request } from "express";
 import { randomUUID } from "crypto";
 import { config } from "../config.js";
 import { createSession, deleteSession } from "../utils/session.js";
@@ -7,7 +8,14 @@ import type { LoginResponse, MeResponse } from "../types/api.js";
 
 const auth = Router();
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
-const oauthStates = new Map<string, number>();
+const MAX_OAUTH_STATES = 1000;
+
+interface OAuthStateData {
+  createdAt: number;
+  returnTo?: string;
+}
+
+const oauthStates = new Map<string, OAuthStateData>();
 
 interface SlackTokenResponse {
   ok: boolean;
@@ -30,11 +38,35 @@ function isAllowedDomain(email: string): boolean {
 
 function cleanupExpiredOauthStates() {
   const now = Date.now();
-  for (const [state, createdAt] of oauthStates.entries()) {
-    if (now - createdAt > OAUTH_STATE_TTL_MS) {
+  for (const [state, data] of oauthStates.entries()) {
+    if (now - data.createdAt > OAUTH_STATE_TTL_MS) {
       oauthStates.delete(state);
     }
   }
+}
+
+function isAllowedFrontendUrl(url: string): boolean {
+  return config.frontendUrls.includes(url);
+}
+
+function normalizeFrontendUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function resolveFrontendReturnUrl(req: Request): string | undefined {
+  const returnToQuery = typeof req.query.returnTo === "string" ? req.query.returnTo : undefined;
+
+  if (!returnToQuery) {
+    return undefined;
+  }
+
+  const normalized = normalizeFrontendUrl(returnToQuery);
+  return normalized && isAllowedFrontendUrl(normalized) ? normalized : undefined;
 }
 
 /**
@@ -92,8 +124,15 @@ auth.get("/slack/start", async (req, res) => {
   }
 
   cleanupExpiredOauthStates();
+  if (oauthStates.size >= MAX_OAUTH_STATES) {
+    return res.status(429).json({ error: "Too many pending OAuth logins" });
+  }
+
   const state = randomUUID();
-  oauthStates.set(state, Date.now());
+  oauthStates.set(state, {
+    createdAt: Date.now(),
+    returnTo: resolveFrontendReturnUrl(req),
+  });
 
   const authUrl = new URL("https://slack.com/openid/connect/authorize");
   authUrl.searchParams.set("response_type", "code");
@@ -123,10 +162,10 @@ auth.get("/slack/callback", async (req, res) => {
     }
 
     cleanupExpiredOauthStates();
-    const stateCreatedAt = oauthStates.get(state);
+    const stateData = oauthStates.get(state);
     oauthStates.delete(state);
 
-    if (!stateCreatedAt || Date.now() - stateCreatedAt > OAUTH_STATE_TTL_MS) {
+    if (!stateData || Date.now() - stateData.createdAt > OAUTH_STATE_TTL_MS) {
       return res.status(400).json({ error: "Invalid or expired OAuth state" });
     }
 
@@ -177,7 +216,8 @@ auth.get("/slack/callback", async (req, res) => {
     }
 
     const sessionId = await createSession({ email });
-    const redirectUrl = new URL("/oauth/callback", config.frontendUrls[0]);
+    const redirectBaseUrl = stateData.returnTo || config.frontendUrls[0];
+    const redirectUrl = new URL("/", redirectBaseUrl);
     redirectUrl.hash = new URLSearchParams({
       sessionId,
       email,
