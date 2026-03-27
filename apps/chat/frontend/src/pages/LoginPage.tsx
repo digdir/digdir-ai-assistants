@@ -1,20 +1,16 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useLogin, useMe } from "@/hooks/useAuth";
-import { apiClient } from "@/api/client";
-import { useAuthStore } from "@/stores/auth";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const login = useLogin();
-  const { isAuthenticated, user } = useAuthStore();
-  const hasStoredSession = !!apiClient.getSessionId();
   const { data: me, isLoading: isCheckingSession } = useMe();
   const hasOauthError = searchParams.get("error") === "oauth_failed";
 
-  if (isCheckingSession && hasStoredSession) {
+  if (isCheckingSession) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-gray-600">Checking session...</div>
@@ -22,7 +18,7 @@ export function LoginPage() {
     );
   }
 
-  if (isAuthenticated || user || me) {
+  if (me) {
     return <Navigate to="/" replace />;
   }
 
@@ -56,7 +52,7 @@ export function LoginPage() {
         <button
           type="button"
           onClick={() => {
-            window.location.href = apiClient.getSlackLoginUrl();
+            window.location.href = "/auth/slack/start";
           }}
           className="w-full bg-[#4A154B] text-white py-3 rounded-md hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:ring-[#4A154B] transition-colors mb-4"
         >

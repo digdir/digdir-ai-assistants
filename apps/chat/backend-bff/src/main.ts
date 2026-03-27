@@ -1,5 +1,6 @@
 import express from "express";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import { config } from "./config.js";
 import { corsMiddleware } from "./middleware/cors.js";
 import { authMiddleware } from "./middleware/auth.js";
@@ -12,6 +13,7 @@ const app = express();
 // Global middleware
 app.use(morgan("dev")); // Request logging
 app.use(express.json()); // Parse JSON bodies
+app.use(cookieParser(config.sessionSecret)); // Parse and sign cookies
 app.use(corsMiddleware); // CORS headers
 
 // Public routes

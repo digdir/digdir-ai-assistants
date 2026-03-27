@@ -27,7 +27,6 @@ export function useMe() {
       setUser(user);
       return user;
     },
-    enabled: !!apiClient.getSessionId(),
     retry: false,
     staleTime: Infinity,
   });

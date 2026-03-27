@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { useConversations, useCreateConversation, useDeleteConversation } from "@/hooks/useConversations";
+import { useLogout } from "@/hooks/useAuth";
 import { useUIStore } from "@/stores/ui";
 import { useAuthStore } from "@/stores/auth";
-import { apiClient } from "@/api/client";
 
 export function Sidebar() {
   const { data: conversationsData, isLoading } = useConversations();
   const createConversation = useCreateConversation();
   const deleteConversation = useDeleteConversation();
   const { activeConversationId, setActiveConversationId } = useUIStore();
-  const { logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const logoutMutation = useLogout();
   const [searchQuery, setSearchQuery] = useState("");
 
   const conversations = conversationsData || [];
@@ -42,8 +43,7 @@ export function Sidebar() {
   };
 
   const handleLogout = () => {
-    apiClient.logout();
-    logout();
+    logoutMutation.mutate();
   };
 
   return (
@@ -147,7 +147,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600 truncate flex-1">
-            {apiClient.getUserEmail() || "User"}
+            {user?.email || "User"}
           </div>
           <button
             onClick={handleLogout}

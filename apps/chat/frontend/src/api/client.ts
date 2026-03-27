@@ -12,37 +12,9 @@ import type {
 
 class ApiClient {
   private baseUrl: string;
-  private sessionId: string | null = null;
-  private userEmail: string | null = null;
 
   constructor(baseUrl: string = "") {
     this.baseUrl = baseUrl;
-    this.sessionId = localStorage.getItem("sessionId");
-    this.userEmail = localStorage.getItem("userEmail");
-  }
-
-  setSession(sessionId: string, email?: string) {
-    this.sessionId = sessionId;
-    localStorage.setItem("sessionId", sessionId);
-    if (email) {
-      this.userEmail = email;
-      localStorage.setItem("userEmail", email);
-    }
-  }
-
-  clearSession() {
-    this.sessionId = null;
-    this.userEmail = null;
-    localStorage.removeItem("sessionId");
-    localStorage.removeItem("userEmail");
-  }
-
-  getSessionId(): string | null {
-    return this.sessionId;
-  }
-
-  getUserEmail(): string | null {
-    return this.userEmail;
   }
 
   private getDefaultCacheMode(endpoint: string): RequestCache | undefined {
@@ -75,7 +47,6 @@ class ApiClient {
       response.status === 401 &&
       (errorCode === "SESSION_MISSING" || errorCode === "SESSION_INVALID")
     ) {
-      this.clearSession();
       window.location.href = "/login";
     }
 
@@ -88,13 +59,13 @@ class ApiClient {
   ): Promise<T> {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
-      ...(this.sessionId && { "X-Session-ID": this.sessionId }),
       ...options.headers,
     };
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       cache: options.cache ?? this.getDefaultCacheMode(endpoint),
+      credentials: "same-origin",
       headers,
     });
 
@@ -112,27 +83,15 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify({ email }),
     });
-    this.setSession(data.sessionId, data.user.email);
     return data.user;
   }
 
   getSlackLoginUrl(): string {
-    const params =
-      typeof window !== "undefined"
-        ? `?${new URLSearchParams({ returnTo: window.location.origin }).toString()}`
-        : "";
-    return `${this.baseUrl}/auth/slack/start${params}`;
-  }
-
-  completeOAuthLogin(sessionId: string, email: string): User {
-    const normalizedEmail = email.toLowerCase();
-    this.setSession(sessionId, normalizedEmail);
-    return { email: normalizedEmail };
+    return `${this.baseUrl}/auth/slack/start`;
   }
 
   async logout(): Promise<void> {
     await this.request("/auth/logout", { method: "POST" });
-    this.clearSession();
   }
 
   async getMe(): Promise<User> {
@@ -195,9 +154,9 @@ class ApiClient {
       {
         method: "POST",
         cache: "no-store",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
-          ...(this.sessionId && { "X-Session-ID": this.sessionId }),
         },
         body: JSON.stringify({
           query: request.query,

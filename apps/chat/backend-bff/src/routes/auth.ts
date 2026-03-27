@@ -3,6 +3,7 @@ import type { Request } from "express";
 import { randomUUID } from "crypto";
 import { config } from "../config.js";
 import { createSession, deleteSession } from "../utils/session.js";
+import { setSessionCookie, clearSessionCookie } from "../utils/cookie.js";
 import { authMiddleware } from "../middleware/auth.js";
 import type { LoginResponse, MeResponse } from "../types/api.js";
 
@@ -100,10 +101,10 @@ auth.post("/login", async (req, res) => {
 
     // Create session
     const sessionId = await createSession({ email: email.toLowerCase() });
+    setSessionCookie(res, sessionId);
 
     const response: LoginResponse = {
       user: { email: email.toLowerCase() },
-      sessionId,
     };
 
     console.log(`User logged in: ${email}`);
@@ -216,12 +217,10 @@ auth.get("/slack/callback", async (req, res) => {
     }
 
     const sessionId = await createSession({ email });
+    setSessionCookie(res, sessionId);
+
     const redirectBaseUrl = stateData.returnTo || config.frontendUrls[0];
     const redirectUrl = new URL("/", redirectBaseUrl);
-    redirectUrl.hash = new URLSearchParams({
-      sessionId,
-      email,
-    }).toString();
 
     return res.redirect(redirectUrl.toString());
   } catch (error) {
@@ -236,12 +235,13 @@ auth.get("/slack/callback", async (req, res) => {
  */
 auth.post("/logout", async (req, res) => {
   try {
-    const sessionId = req.header("X-Session-ID");
+    const sessionId = req.signedCookies?.session;
 
     if (sessionId) {
       await deleteSession(sessionId);
     }
 
+    clearSessionCookie(res);
     return res.json({ success: true });
   } catch (error) {
     console.error("Logout error:", error);

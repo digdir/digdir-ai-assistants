@@ -14,11 +14,11 @@ declare global {
 
 /**
  * Authentication middleware
- * Checks for valid session ID in X-Session-ID header
+ * Checks for valid session ID in signed cookie
  * Adds session data to request for downstream handlers
  */
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-  const sessionId = req.header("X-Session-ID");
+  const sessionId = req.signedCookies?.session;
 
   if (!sessionId) {
     return res.status(401).json({

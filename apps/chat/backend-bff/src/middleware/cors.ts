@@ -15,7 +15,7 @@ export const corsMiddleware = (req: Request, res: Response, next: NextFunction) 
   // Set CORS headers
   res.header("Access-Control-Allow-Origin", allowedOrigin);
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, X-Session-ID, Authorization");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.header("Access-Control-Allow-Credentials", "true");
 
   // Handle preflight requests

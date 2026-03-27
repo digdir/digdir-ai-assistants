@@ -6,7 +6,6 @@ export interface User {
 // Auth types
 export interface LoginResponse {
   user: User;
-  sessionId: string;
 }
 
 export interface MeResponse {
