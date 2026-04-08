@@ -1,4 +1,5 @@
 import { useUIStore } from "@/stores/ui";
+import { useTranslation } from "@/i18n";
 import type { MessageChunk } from "@/types";
 
 interface CitationMarkerProps {
@@ -7,6 +8,7 @@ interface CitationMarkerProps {
 }
 
 export function CitationMarker({ index, chunks }: CitationMarkerProps) {
+  const { t } = useTranslation();
   const { setActiveChunks, setHighlightedChunkIndex } = useUIStore();
 
   const handleClick = (e: React.MouseEvent) => {
@@ -22,7 +24,7 @@ export function CitationMarker({ index, chunks }: CitationMarkerProps) {
       <button
         onClick={handleClick}
         className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-[10px] font-semibold bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
-        title={chunks[index]?.docTitle || `Source ${displayNum}`}
+        title={chunks[index]?.docTitle || t("citation.source", { num: displayNum })}
       >
         {displayNum}
       </button>

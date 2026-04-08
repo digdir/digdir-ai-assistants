@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { useUIStore } from "@/stores/ui";
+import { useTranslation } from "@/i18n";
 import type { MessageChunk } from "@/types";
 
 interface ChunksSidebarProps {
@@ -10,6 +11,7 @@ interface ChunksSidebarProps {
 }
 
 export function ChunksSidebar({ chunks }: ChunksSidebarProps) {
+  const { t } = useTranslation();
   const [expandedChunkId, setExpandedChunkId] = useState<string | null>(null);
   const { highlightedChunkIndex, setHighlightedChunkIndex, setRightSidebarOpen } = useUIStore();
   const chunkRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -57,16 +59,16 @@ export function ChunksSidebar({ chunks }: ChunksSidebarProps) {
       <div className="p-4 border-b border-gray-200 flex items-start justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            Sources ({chunks.length})
+            {t("sources.title", { count: chunks.length })}
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Chunks used to generate the answer
+            {t("sources.description")}
           </p>
         </div>
         <button
           onClick={() => { setHighlightedChunkIndex(null); setRightSidebarOpen(false); }}
           className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-          aria-label="Close sources panel"
+          aria-label={t("sources.close")}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -98,15 +100,15 @@ export function ChunksSidebar({ chunks }: ChunksSidebarProps) {
                       {idx + 1}
                     </span>
                     <span className="font-medium text-gray-900 text-sm truncate">
-                      {chunk.docTitle || "Untitled Document"}
+                      {chunk.docTitle || t("sources.untitledDocument")}
                     </span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1 ml-7">
-                    Document: {chunk.docNum || "N/A"}
+                    {t("sources.document", { value: chunk.docNum || t("sources.na") })}
                   </div>
                   {chunk.chunkId && (
                     <div className="text-xs text-gray-400 mt-0.5 ml-7 truncate">
-                      Chunk ID: {chunk.chunkId}
+                      {t("sources.chunkId", { value: chunk.chunkId })}
                     </div>
                   )}
                 </div>
@@ -147,7 +149,7 @@ export function ChunksSidebar({ chunks }: ChunksSidebarProps) {
             {/* Show message if no content available */}
             {expandedChunkId === chunk.chunkId && !chunk.contentMarkdown && (
               <div className="border-t border-gray-200 p-3 bg-gray-50 text-xs text-gray-500 italic">
-                Content not available
+                {t("sources.contentNotAvailable")}
               </div>
             )}
           </div>

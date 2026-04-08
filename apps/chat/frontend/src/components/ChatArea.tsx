@@ -13,6 +13,7 @@ import { CitationMarker } from "./CitationMarker";
 import { SuggestionChips } from "./SuggestionChips";
 import { processCitations } from "@/utils/citations";
 import { extractSuggestions } from "@/utils/suggestions";
+import { useTranslation } from "@/i18n";
 import type { MessageChunk } from "@/types";
 
 /** Allow citation: scheme through ReactMarkdown's URL sanitizer */
@@ -22,6 +23,7 @@ function urlTransform(url: string): string {
 }
 
 export function ChatArea() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { activeConversationId, setActiveConversationId, setActiveChunks, setHighlightedChunkIndex } = useUIStore();
   const { data: conversationData, isLoading } = useConversation(activeConversationId || undefined);
@@ -176,17 +178,17 @@ export function ChatArea() {
       <div className="flex-1 flex items-center justify-center bg-white">
         <div className="text-center max-w-md px-4">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome to Chat App
+            {t("welcome.title")}
           </h1>
           <p className="text-gray-600 mb-8">
-            Start a new conversation or select an existing one from the sidebar.
+            {t("welcome.subtitle")}
           </p>
           <div className="text-sm text-gray-500">
-            <p>Use the sidebar to:</p>
+            <p>{t("welcome.sidebarHint")}</p>
             <ul className="mt-2 space-y-1 text-left ml-8">
-              <li>• Create a new conversation</li>
-              <li>• Browse your conversation history</li>
-              <li>• Search through past conversations</li>
+              <li>• {t("welcome.createConversation")}</li>
+              <li>• {t("welcome.browseHistory")}</li>
+              <li>• {t("welcome.searchPast")}</li>
             </ul>
           </div>
         </div>
@@ -199,17 +201,17 @@ export function ChatArea() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">
-          {conversationData?.conversation?.topic || "New Conversation"}
+          {conversationData?.conversation?.topic || t("chat.newConversation")}
         </h2>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {isLoading ? (
-          <div className="text-center text-gray-500 py-8">Loading messages...</div>
+          <div className="text-center text-gray-500 py-8">{t("chat.loadingMessages")}</div>
         ) : visibleMessages.length === 0 && !streamingMessage && !isStreaming ? (
           <div className="text-center text-gray-500 py-8">
-            No messages yet. Start the conversation!
+            {t("chat.noMessages")}
           </div>
         ) : (
           <div className="space-y-6 max-w-4xl mx-auto">
@@ -252,7 +254,7 @@ export function ChatArea() {
                             onClick={() => handleViewSources(message.chunks || [])}
                             className="font-medium text-primary hover:text-primary-dark underline cursor-pointer"
                           >
-                            View {message.chunks.length} source{message.chunks.length !== 1 ? "s" : ""} →
+                            {t("chat.viewSources", { count: message.chunks.length })}
                           </button>
                         )}
                         <button
@@ -263,7 +265,7 @@ export function ChatArea() {
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                           </svg>
-                          Retry
+                          {t("chat.retry")}
                         </button>
                       </div>
                     )}
@@ -305,7 +307,7 @@ export function ChatArea() {
                       {streamingMessage}
                     </ReactMarkdown>
                   </div>
-                  <div className="text-xs mt-1 text-gray-500">Streaming...</div>
+                  <div className="text-xs mt-1 text-gray-500">{t("chat.streaming")}</div>
                 </div>
               </div>
             )}
@@ -330,7 +332,7 @@ export function ChatArea() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={t("chat.placeholder")}
               disabled={isStreaming}
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -339,7 +341,7 @@ export function ChatArea() {
               disabled={!input.trim() || isStreaming}
               className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isStreaming ? "Sending..." : "Send"}
+              {isStreaming ? t("chat.sending") : t("chat.send")}
             </button>
           </div>
         </form>

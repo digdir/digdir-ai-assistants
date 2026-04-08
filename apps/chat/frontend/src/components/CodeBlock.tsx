@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useTranslation } from "@/i18n";
 
 interface CodeBlockProps {
   children?: React.ReactNode;
@@ -9,6 +10,7 @@ interface CodeBlockProps {
 }
 
 export function CodeBlock({ children, className, ...rest }: CodeBlockProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const match = /language-(\w+)/.exec(className || "");
   const language = match ? match[1] : undefined;
@@ -33,7 +35,7 @@ export function CodeBlock({ children, className, ...rest }: CodeBlockProps) {
     <div className="relative group rounded-lg overflow-hidden mb-4">
       {/* Language label + Copy button */}
       <div className="flex items-center justify-between bg-gray-700 px-4 py-1.5 text-xs text-gray-300">
-        <span>{language || "text"}</span>
+        <span>{language || t("code.defaultLanguage")}</span>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1 hover:text-white transition-colors"
@@ -43,14 +45,14 @@ export function CodeBlock({ children, className, ...rest }: CodeBlockProps) {
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Copied!
+              {t("code.copied")}
             </>
           ) : (
             <>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              Copy
+              {t("code.copy")}
             </>
           )}
         </button>

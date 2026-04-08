@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useLogin, useMe } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n";
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -15,7 +17,7 @@ export function LoginPage() {
   if (isCheckingSession) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-gray-600">Checking session...</div>
+        <div className="text-gray-600">{t("login.checkingSession")}</div>
       </div>
     );
   }
@@ -40,13 +42,13 @@ export function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">
-          Login
+          {t("login.title")}
         </h1>
 
         {hasOauthError && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-700">
-              Slack login failed. Please try again or use email login.
+              {t("login.slackError")}
             </p>
           </div>
         )}
@@ -58,7 +60,7 @@ export function LoginPage() {
           }}
           className="w-full bg-[#4A154B] text-white py-3 rounded-md hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:ring-[#4A154B] transition-colors mb-4"
         >
-          Continue with Slack
+          {t("login.continueWithSlack")}
         </button>
 
         <div className="relative mb-4">
@@ -66,7 +68,7 @@ export function LoginPage() {
             <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-white px-2 text-gray-500">Or use email</span>
+            <span className="bg-white px-2 text-gray-500">{t("login.orUseEmail")}</span>
           </div>
         </div>
 
@@ -76,14 +78,14 @@ export function LoginPage() {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email
+              {t("login.emailLabel")}
             </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@company.no"
+              placeholder={t("login.emailPlaceholder")}
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
               disabled={login.isPending}
@@ -95,7 +97,7 @@ export function LoginPage() {
               <p className="text-sm text-red-700">
                 {login.error instanceof Error
                   ? login.error.message
-                  : "Domain not authorized. Please use your company email."}
+                  : t("login.domainError")}
               </p>
             </div>
           )}
@@ -105,12 +107,12 @@ export function LoginPage() {
             disabled={login.isPending}
             className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {login.isPending ? "Logging in..." : "Login"}
+            {login.isPending ? t("login.loggingIn") : t("login.loginButton")}
           </button>
         </form>
 
         <p className="text-sm text-gray-600 mt-6 text-center">
-          Only authorized email domains can access this application.
+          {t("login.authorizedDomainsOnly")}
         </p>
       </div>
     </div>
