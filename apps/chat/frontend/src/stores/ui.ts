@@ -15,6 +15,9 @@ interface UIState {
   // Active chunks to display in right sidebar
   activeChunks: MessageChunk[];
 
+  // Highlighted chunk index (for citation click navigation)
+  highlightedChunkIndex: number | null;
+
   // Actions
   toggleLeftSidebar: () => void;
   toggleRightSidebar: () => void;
@@ -24,6 +27,7 @@ interface UIState {
   setMobileMenuOpen: (open: boolean) => void;
   setActiveConversationId: (id: string | null) => void;
   setActiveChunks: (chunks: MessageChunk[]) => void;
+  setHighlightedChunkIndex: (index: number | null) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -33,6 +37,7 @@ export const useUIStore = create<UIState>((set) => ({
   mobileMenuOpen: false,
   activeConversationId: null,
   activeChunks: [],
+  highlightedChunkIndex: null,
 
   // Actions
   toggleLeftSidebar: () =>
@@ -58,4 +63,7 @@ export const useUIStore = create<UIState>((set) => ({
 
   setActiveChunks: (chunks: MessageChunk[]) =>
     set({ activeChunks: chunks, rightSidebarOpen: chunks.length > 0 }),
+
+  setHighlightedChunkIndex: (index: number | null) =>
+    set({ highlightedChunkIndex: index }),
 }));

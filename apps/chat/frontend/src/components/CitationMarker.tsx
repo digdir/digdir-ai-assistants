@@ -1,0 +1,31 @@
+import { useUIStore } from "@/stores/ui";
+import type { MessageChunk } from "@/types";
+
+interface CitationMarkerProps {
+  index: number;
+  chunks: MessageChunk[];
+}
+
+export function CitationMarker({ index, chunks }: CitationMarkerProps) {
+  const { setActiveChunks, setHighlightedChunkIndex } = useUIStore();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setActiveChunks(chunks);
+    setHighlightedChunkIndex(index);
+  };
+
+  const displayNum = index + 1;
+
+  return (
+    <sup>
+      <button
+        onClick={handleClick}
+        className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-[10px] font-semibold bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
+        title={chunks[index]?.docTitle || `Source ${displayNum}`}
+      >
+        {displayNum}
+      </button>
+    </sup>
+  );
+}

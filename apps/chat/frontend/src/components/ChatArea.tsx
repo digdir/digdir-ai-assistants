@@ -3,22 +3,58 @@ import { useConversation, conversationKeys } from "@/hooks/useConversations";
 import { useUIStore } from "@/stores/ui";
 import { apiClient } from "@/api/client";
 import { useQueryClient } from "@tanstack/react-query";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import { CodeBlock } from "./CodeBlock";
+import { CitationMarker } from "./CitationMarker";
+import { SuggestionChips } from "./SuggestionChips";
+import { processCitations } from "@/utils/citations";
+import { extractSuggestions } from "@/utils/suggestions";
+import type { MessageChunk } from "@/types";
+
+/** Allow citation: scheme through ReactMarkdown's URL sanitizer */
+function urlTransform(url: string): string {
+  if (url.startsWith("citation:")) return url;
+  return defaultUrlTransform(url);
+}
 
 export function ChatArea() {
   const queryClient = useQueryClient();
-  const { activeConversationId, setActiveConversationId, setActiveChunks } = useUIStore();
+  const { activeConversationId, setActiveConversationId, setActiveChunks, setHighlightedChunkIndex } = useUIStore();
   const { data: conversationData, isLoading } = useConversation(activeConversationId || undefined);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestionsStrippedSuffix, setSuggestionsStrippedSuffix] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const messages = conversationData?.messages || [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getMarkdownComponents = (chunks?: MessageChunk[]): any => ({
+    code: CodeBlock,
+    pre: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+    a: ({ href, children }: { href?: string; children?: React.ReactNode }) => {
+      if (href?.startsWith("citation:")) {
+        const index = parseInt(href.split(":")[1], 10);
+        return (
+          <CitationMarker
+            index={index}
+            chunks={chunks || []}
+          />
+        );
+      }
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary-light">
+          {children}
+        </a>
+      );
+    },
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -28,12 +64,12 @@ export function ChatArea() {
     scrollToBottom();
   }, [messages, streamingMessage]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isStreaming) return;
+  const sendQuery = async (query: string) => {
+    if (!query || isStreaming) return;
 
-    const query = input.trim();
     setInput("");
+    setSuggestions([]);
+    setSuggestionsStrippedSuffix(null);
     setIsStreaming(true);
     setStreamingMessage("");
 
@@ -47,6 +83,17 @@ export function ChatArea() {
           setStreamingMessage((prev) => prev + chunk);
         }
       );
+
+      // Extract suggestions from the completed streaming text (text-based only;
+      // chunks aren't available until after refetch)
+      setStreamingMessage((prev) => {
+        const { cleanedText, suggestions: extracted } = extractSuggestions(prev);
+        setSuggestions(extracted);
+        if (cleanedText !== prev) {
+          setSuggestionsStrippedSuffix(prev.slice(cleanedText.length));
+        }
+        return prev;
+      });
 
       setStreamingMessage("");
       setIsStreaming(false);
@@ -73,6 +120,53 @@ export function ChatArea() {
       setStreamingMessage("");
       setIsStreaming(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    sendQuery(input.trim());
+  };
+
+  const handleRetry = (messageId: string) => {
+    if (isStreaming) return;
+
+    // Find the preceding user message
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    if (messageIndex < 1) return;
+
+    const userMessage = messages
+      .slice(0, messageIndex)
+      .reverse()
+      .find((m) => m.role === "user");
+    if (!userMessage) return;
+
+    sendQuery(userMessage.text);
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    sendQuery(suggestion);
+  };
+
+  const handleViewSources = (chunks: MessageChunk[]) => {
+    setHighlightedChunkIndex(null);
+    setActiveChunks(chunks);
+  };
+
+  /**
+   * Get the display text for a message, stripping the suggestions section
+   * from the last assistant message when suggestions are active.
+   */
+  const getMessageText = (message: typeof messages[number], idx: number): string => {
+    if (
+      message.role === "assistant" &&
+      suggestions.length > 0 &&
+      suggestionsStrippedSuffix &&
+      idx === messages.length - 1 &&
+      message.text.endsWith(suggestionsStrippedSuffix)
+    ) {
+      return message.text.slice(0, message.text.length - suggestionsStrippedSuffix.length).trimEnd();
+    }
+    return message.text;
   };
 
   if (!activeConversationId) {
@@ -111,58 +205,90 @@ export function ChatArea() {
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {isLoading ? (
           <div className="text-center text-gray-500 py-8">Loading messages...</div>
-        ) : messages.length === 0 && !streamingMessage ? (
+        ) : messages.length === 0 && !streamingMessage && !isStreaming ? (
           <div className="text-center text-gray-500 py-8">
             No messages yet. Start the conversation!
           </div>
         ) : (
           <div className="space-y-6 max-w-4xl mx-auto">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
+            {messages.map((message, idx) => {
+              const displayText = getMessageText(message, idx);
+              return (
                 <div
-                  className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                    message.role === "user"
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-900"
+                  key={message.id}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {message.role === "user" ? (
-                    <div className="whitespace-pre-wrap">{message.text}</div>
-                  ) : (
-                    <div className="markdown-content">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
-                      >
-                        {message.text}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                  {message.chunks && message.chunks.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-gray-200 text-xs">
-                      <button
-                        onClick={() => setActiveChunks(message.chunks || [])}
-                        className="font-medium mb-1 text-primary hover:text-primary-dark underline cursor-pointer"
-                      >
-                        View {message.chunks.length} source{message.chunks.length !== 1 ? 's' : ''} →
-                      </button>
-                    </div>
-                  )}
                   <div
-                    className={`text-xs mt-1 ${
-                      message.role === "user" ? "text-white/70" : "text-gray-500"
+                    className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                      message.role === "user"
+                        ? "bg-primary text-white"
+                        : "bg-gray-100 text-gray-900"
                     }`}
                   >
-                    {new Date(message.created).toLocaleTimeString()}
+                    {message.role === "user" ? (
+                      <div className="whitespace-pre-wrap">{message.text}</div>
+                    ) : (
+                      <div className="markdown-content">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkMath]}
+                          rehypePlugins={[rehypeKatex]}
+                          urlTransform={urlTransform}
+                          components={getMarkdownComponents(message.chunks)}
+                        >
+                          {message.chunks && message.chunks.length > 0
+                            ? processCitations(displayText, message.chunks.length)
+                            : displayText}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                    {message.role === "assistant" && (
+                      <div className="mt-2 pt-2 border-t border-gray-200 flex items-center gap-3 text-xs">
+                        {message.chunks && message.chunks.length > 0 && (
+                          <button
+                            onClick={() => handleViewSources(message.chunks || [])}
+                            className="font-medium text-primary hover:text-primary-dark underline cursor-pointer"
+                          >
+                            View {message.chunks.length} source{message.chunks.length !== 1 ? "s" : ""} →
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleRetry(message.id)}
+                          disabled={isStreaming}
+                          className="flex items-center gap-1 text-gray-500 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Retry
+                        </button>
+                      </div>
+                    )}
+                    <div
+                      className={`text-xs mt-1 ${
+                        message.role === "user" ? "text-white/70" : "text-gray-500"
+                      }`}
+                    >
+                      {new Date(message.created).toLocaleTimeString()}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Waiting indicator — shown after send, before first token arrives */}
+            {isStreaming && !streamingMessage && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-lg px-4 py-3 bg-gray-100 text-gray-900">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
                   </div>
                 </div>
               </div>
-            ))}
+            )}
 
             {streamingMessage && (
               <div className="flex justify-start">
@@ -171,6 +297,8 @@ export function ChatArea() {
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm, remarkMath]}
                       rehypePlugins={[rehypeKatex]}
+                      urlTransform={urlTransform}
+                      components={getMarkdownComponents()}
                     >
                       {streamingMessage}
                     </ReactMarkdown>
@@ -178,6 +306,13 @@ export function ChatArea() {
                   <div className="text-xs mt-1 text-gray-500">Streaming...</div>
                 </div>
               </div>
+            )}
+
+            {!isStreaming && suggestions.length > 0 && (
+              <SuggestionChips
+                suggestions={suggestions}
+                onSelect={handleSuggestionClick}
+              />
             )}
 
             <div ref={messagesEndRef} />

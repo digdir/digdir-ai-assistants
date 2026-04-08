@@ -55,16 +55,10 @@ code {
 }
 
 .markdown-content code {
-  @apply bg-gray-100 px-1 py-0.5 rounded text-sm;
+  @apply bg-gray-200 px-1 py-0.5 rounded text-sm;
 }
 
-.markdown-content pre {
-  @apply bg-gray-100 p-4 rounded overflow-x-auto mb-4;
-}
-
-.markdown-content pre code {
-  @apply bg-transparent p-0;
-}
+/* Pre blocks are handled by CodeBlock component via react-syntax-highlighter */
 
 /* KaTeX math rendering */
 .katex {
