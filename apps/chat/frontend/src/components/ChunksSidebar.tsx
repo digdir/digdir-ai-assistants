@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { useUIStore } from "@/stores/ui";
 import type { MessageChunk } from "@/types";
@@ -133,7 +134,10 @@ export function ChunksSidebar({ chunks }: ChunksSidebarProps) {
             {expandedChunkId === chunk.chunkId && chunk.contentMarkdown && (
               <div className="border-t border-gray-200 p-3 bg-gray-50">
                 <div className="text-xs text-gray-700 prose prose-sm max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                  >
                     {chunk.contentMarkdown}
                   </ReactMarkdown>
                 </div>

@@ -8,7 +8,8 @@ export function Sidebar() {
   const { data: conversationsData, isLoading } = useConversations();
   const createConversation = useCreateConversation();
   const deleteConversation = useDeleteConversation();
-  const { activeConversationId, setActiveConversationId } = useUIStore();
+  const { activeConversationId, setActiveConversationId, leftSidebarOpen, toggleLeftSidebar } =
+    useUIStore();
   const { user } = useAuthStore();
   const logoutMutation = useLogout();
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,11 +47,40 @@ export function Sidebar() {
     logoutMutation.mutate();
   };
 
+  if (!leftSidebarOpen) {
+    return (
+      <div className="w-14 bg-gray-50 border-r border-gray-200 flex flex-col items-center py-4 gap-3">
+        <button
+          onClick={toggleLeftSidebar}
+          className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+          aria-label="Expand conversations panel"
+          title="Expand conversations panel"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-80 bg-gray-50 border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Conversations</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
+          <button
+            onClick={toggleLeftSidebar}
+            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+            aria-label="Collapse conversations panel"
+            title="Collapse conversations panel"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
         <button
           onClick={handleNewChat}
           disabled={createConversation.isPending}
