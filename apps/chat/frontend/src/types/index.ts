@@ -37,6 +37,28 @@ export interface MessageChunk {
   contentMarkdown?: string;
 }
 
+// Dataset types
+export type DatasetStatus = "configured" | "running" | "ready" | "degraded" | string;
+
+export interface Dataset {
+  id: string;
+  name: string;
+  description?: string;
+  "enabled?": boolean;
+  status?: DatasetStatus | string;
+}
+
+export type ConfigRoot = "platform" | "runtime" | "dataset";
+
+export interface ConfigNode {
+  tenant?: string;
+  root?: ConfigRoot | string;
+  id?: string;
+  name?: string;
+  "node-slug"?: string;
+  [key: string]: unknown;
+}
+
 // RAG types
 export interface RagRequest {
   query: string;
@@ -45,6 +67,10 @@ export interface RagRequest {
   rerankTopK?: number;
   contextTopK?: number;
   maxContextLength?: number;
+  tenant?: string;
+  datasetConfigKey?: string;
+  runtimeConfigKey?: string;
+  agentId?: string;
 }
 
 export interface RagResponse {
@@ -57,6 +83,19 @@ export interface RagResponse {
     docNum: string;
     contentMarkdown?: string;
   }>;
+}
+
+export interface RetrieveRequest {
+  query: string;
+  tenant?: string;
+  datasetConfigKey?: string;
+}
+
+export interface RetrieveResponse {
+  datasetScope: {
+    tenant: string;
+    datasetConfigKey: string;
+  };
 }
 
 // Filter types
@@ -84,6 +123,33 @@ export interface ConversationsResponse {
 export interface ConversationResponse {
   conversation: Conversation;
   messages: Message[];
+}
+
+export interface DatasetsResponse {
+  datasets: Dataset[];
+}
+
+export interface DatasetResponse {
+  dataset: Dataset;
+}
+
+export interface ConfigNodesResponse {
+  nodes: ConfigNode[];
+}
+
+export interface ResolveRuntimeConfigRequest {
+  tenant?: string;
+  nodeSlug?: string;
+  agentId?: string;
+  datasetId?: string;
+  paths?: string[];
+}
+
+export interface ResolveDatasetConfigRequest {
+  tenant?: string;
+  nodeSlug?: string;
+  datasetId?: string;
+  paths?: string[];
 }
 
 export interface CreateConversationRequest {

@@ -44,6 +44,27 @@ export interface Message {
   createdAt: string;
 }
 
+export type DatasetStatus = "configured" | "running" | "ready" | "degraded" | string;
+
+export interface Dataset {
+  id: string;
+  name: string;
+  description?: string;
+  "enabled?": boolean;
+  status?: DatasetStatus | string;
+}
+
+export type ConfigRoot = "platform" | "runtime" | "dataset";
+
+export interface ConfigNode {
+  tenant?: string;
+  root?: ConfigRoot | string;
+  id?: string;
+  name?: string;
+  "node-slug"?: string;
+  [key: string]: unknown;
+}
+
 // RAG types
 export interface RagRequest {
   query: string;
@@ -52,6 +73,10 @@ export interface RagRequest {
   "rerank-top-k"?: number;
   "context-top-k"?: number;
   "max-context-length"?: number;
+  tenant?: string;
+  "dataset-config-key"?: string;
+  "runtime-config-key"?: string;
+  "agent-id"?: string;
 }
 
 export interface RagResponse {
@@ -64,6 +89,19 @@ export interface RagResponse {
     "doc-num": string;
     "content-markdown": string;
   }>;
+}
+
+export interface RetrieveRequest {
+  query: string;
+  tenant?: string;
+  "dataset-config-key"?: string;
+}
+
+export interface RetrieveResponse {
+  "dataset-scope": {
+    tenant: string;
+    "dataset-config-key": string;
+  };
 }
 
 // Filter types

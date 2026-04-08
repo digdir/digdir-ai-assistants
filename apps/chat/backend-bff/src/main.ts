@@ -1,17 +1,25 @@
 import express from "express";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import { randomUUID } from "crypto";
 import { config } from "./config.js";
 import { corsMiddleware } from "./middleware/cors.js";
 import { authMiddleware } from "./middleware/auth.js";
 import authRoutes from "./routes/auth.js";
 import proxyRoutes from "./routes/proxy.js";
+import { logger } from "./utils/logger.js";
 
 // Create Express app
 const app = express();
 
 // Global middleware
-app.use(morgan("dev")); // Request logging
+app.use((req, res, next) => {
+  req.requestId = randomUUID();
+  res.setHeader("X-Request-Id", req.requestId);
+  next();
+});
+morgan.token("req-id", req => (req as express.Request).requestId || "-");
+app.use(morgan(":method :url :status :response-time ms - :res[content-length] [req_id=:req-id]"));
 app.use(express.json()); // Parse JSON bodies
 app.use(cookieParser(config.sessionSecret)); // Parse and sign cookies
 app.use(corsMiddleware); // CORS headers
@@ -54,11 +62,17 @@ app.get("/", (req, res) => {
       },
       api: {
         rag: "POST /api/rag",
+        retrieve: "POST /api/retrieve",
+        configNodes: "GET /api/config/:root/nodes?tenant=...",
+        resolveRuntimeConfig: "POST /api/runtime/config/resolve",
+        resolveDatasetConfig: "POST /api/dataset/config/resolve",
         conversations: "GET /api/conversations",
         createConversation: "POST /api/conversations",
         getConversation: "GET /api/conversations/:id",
         updateConversation: "PUT /api/conversations/:id",
         deleteConversation: "DELETE /api/conversations/:id",
+        datasets: "GET /api/datasets",
+        getDataset: "GET /api/datasets/:datasetId",
         filters: "GET /api/filters",
         updateFilters: "PUT /api/filters",
         changelog: "GET /api/changelog",
@@ -71,12 +85,22 @@ app.get("/", (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
+  logger.warn("Route not found", {
+    requestId: req.requestId,
+    method: req.method,
+    path: req.originalUrl,
+  });
   return res.status(404).json({ error: "Not found" });
 });
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error("Server error:", err);
+  logger.error("Unhandled server error", {
+    requestId: req.requestId,
+    method: req.method,
+    path: req.originalUrl,
+    error: err,
+  });
   return res.status(500).json({
     error: "Internal server error",
     message: err.message,
@@ -84,7 +108,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 });
 
 // Start server
-console.log(`
+logger.info(`
 ╔════════════════════════════════════════╗
 ║     🚀 Chat App BFF Server             ║
 ╚════════════════════════════════════════╝
@@ -106,5 +130,5 @@ Ready to accept connections!
 `);
 
 app.listen(config.port, () => {
-  console.log(`Server listening on port ${config.port}`);
+  logger.info(`Server listening on port ${config.port}`);
 });

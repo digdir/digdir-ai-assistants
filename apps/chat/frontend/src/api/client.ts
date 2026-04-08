@@ -8,6 +8,16 @@ import type {
   CreateConversationRequest,
   UpdateConversationRequest,
   RagRequest,
+  RetrieveRequest,
+  RetrieveResponse,
+  Dataset,
+  DatasetsResponse,
+  DatasetResponse,
+  ConfigRoot,
+  ConfigNode,
+  ConfigNodesResponse,
+  ResolveRuntimeConfigRequest,
+  ResolveDatasetConfigRequest,
 } from "@/types";
 
 class ApiClient {
@@ -37,6 +47,16 @@ class ApiClient {
   }
 
   private async handleErrorResponse(response: Response, fallbackMessage: string): Promise<never> {
+    return await this.handleErrorResponseWithOptions(response, fallbackMessage, {
+      redirectOnAuthFailure: true,
+    });
+  }
+
+  private async handleErrorResponseWithOptions(
+    response: Response,
+    fallbackMessage: string,
+    options: { redirectOnAuthFailure: boolean }
+  ): Promise<never> {
     const errorData = await response.json().catch(() => ({}));
     const errorCode =
       this.isObject(errorData) && typeof errorData.code === "string"
@@ -44,6 +64,7 @@ class ApiClient {
         : undefined;
 
     if (
+      options.redirectOnAuthFailure &&
       response.status === 401 &&
       (errorCode === "SESSION_MISSING" || errorCode === "SESSION_INVALID")
     ) {
@@ -53,9 +74,30 @@ class ApiClient {
     throw new Error(this.getErrorMessage(errorData, fallbackMessage));
   }
 
+  private extractCollection<T>(data: unknown, key: string): T[] {
+    if (Array.isArray(data)) {
+      return data as T[];
+    }
+
+    if (this.isObject(data) && Array.isArray(data[key])) {
+      return data[key] as T[];
+    }
+
+    throw new Error(`Invalid API response: expected ${key} collection`);
+  }
+
+  private extractResource<T>(data: unknown, key: string): T {
+    if (this.isObject(data) && key in data) {
+      return data[key] as T;
+    }
+
+    return data as T;
+  }
+
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    requestOptions: { redirectOnAuthFailure?: boolean } = {}
   ): Promise<T> {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
@@ -70,7 +112,13 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      await this.handleErrorResponse(response, `API error: ${response.statusText}`);
+      await this.handleErrorResponseWithOptions(
+        response,
+        `API error: ${response.statusText}`,
+        {
+          redirectOnAuthFailure: requestOptions.redirectOnAuthFailure ?? true,
+        }
+      );
     }
 
     return await response.json();
@@ -94,8 +142,8 @@ class ApiClient {
     await this.request("/auth/logout", { method: "POST" });
   }
 
-  async getMe(): Promise<User> {
-    const data = await this.request<MeResponse>("/auth/me");
+  async getMe(options: { redirectOnAuthFailure?: boolean } = {}): Promise<User> {
+    const data = await this.request<MeResponse>("/auth/me", undefined, options);
     return data.user;
   }
 
@@ -143,7 +191,84 @@ class ApiClient {
     await this.request(`/api/conversations/${id}`, { method: "DELETE" });
   }
 
+  // ========== Datasets ==========
+
+  async getDatasets(): Promise<Dataset[]> {
+    const data = await this.request<DatasetsResponse | Dataset[]>("/api/datasets");
+    return this.extractCollection<Dataset>(data, "datasets");
+  }
+
+  async getDataset(datasetId: string): Promise<Dataset> {
+    const data = await this.request<DatasetResponse | Dataset>(
+      `/api/datasets/${encodeURIComponent(datasetId)}`
+    );
+    return this.extractResource<Dataset>(data, "dataset");
+  }
+
+  // ========== Config ==========
+
+  async getConfigNodes(root: ConfigRoot, tenant?: string): Promise<ConfigNode[]> {
+    const query = new URLSearchParams();
+    if (tenant) {
+      query.set("tenant", tenant);
+    }
+
+    const suffix = query.size > 0 ? `?${query.toString()}` : "";
+    const data = await this.request<ConfigNodesResponse | ConfigNode[]>(
+      `/api/config/${encodeURIComponent(root)}/nodes${suffix}`
+    );
+    return this.extractCollection<ConfigNode>(data, "nodes");
+  }
+
+  async resolveRuntimeConfig(request: ResolveRuntimeConfigRequest): Promise<Record<string, unknown>> {
+    return await this.request<Record<string, unknown>>("/api/runtime/config/resolve", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant: request.tenant,
+        "node-slug": request.nodeSlug,
+        "agent-id": request.agentId,
+        "dataset-id": request.datasetId,
+        paths: request.paths,
+      }),
+    });
+  }
+
+  async resolveDatasetConfig(request: ResolveDatasetConfigRequest): Promise<Record<string, unknown>> {
+    return await this.request<Record<string, unknown>>("/api/dataset/config/resolve", {
+      method: "POST",
+      body: JSON.stringify({
+        tenant: request.tenant,
+        "node-slug": request.nodeSlug,
+        "dataset-id": request.datasetId,
+        paths: request.paths,
+      }),
+    });
+  }
+
   // ========== Chat (RAG with streaming) ==========
+
+  async retrieve(request: RetrieveRequest): Promise<RetrieveResponse> {
+    const data = await this.request<{
+      "dataset-scope": {
+        tenant: string;
+        "dataset-config-key": string;
+      };
+    }>("/api/retrieve", {
+      method: "POST",
+      body: JSON.stringify({
+        query: request.query,
+        tenant: request.tenant,
+        "dataset-config-key": request.datasetConfigKey,
+      }),
+    });
+
+    return {
+      datasetScope: {
+        tenant: data["dataset-scope"].tenant,
+        datasetConfigKey: data["dataset-scope"]["dataset-config-key"],
+      },
+    };
+  }
 
   async sendMessage(
     request: RagRequest,
@@ -165,6 +290,10 @@ class ApiClient {
           "rerank-top-k": request.rerankTopK,
           "context-top-k": request.contextTopK,
           "max-context-length": request.maxContextLength,
+          tenant: request.tenant,
+          "dataset-config-key": request.datasetConfigKey,
+          "runtime-config-key": request.runtimeConfigKey,
+          "agent-id": request.agentId,
         }),
       }
     );
@@ -223,6 +352,10 @@ class ApiClient {
         "rerank-top-k": request.rerankTopK,
         "context-top-k": request.contextTopK,
         "max-context-length": request.maxContextLength,
+        tenant: request.tenant,
+        "dataset-config-key": request.datasetConfigKey,
+        "runtime-config-key": request.runtimeConfigKey,
+        "agent-id": request.agentId,
       }),
     });
   }

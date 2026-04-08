@@ -7,7 +7,9 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const login = useLogin();
-  const { data: me, isLoading: isCheckingSession } = useMe();
+  const { data: me, isLoading: isCheckingSession } = useMe({
+    redirectOnAuthFailure: false,
+  });
   const hasOauthError = searchParams.get("error") === "oauth_failed";
 
   if (isCheckingSession) {

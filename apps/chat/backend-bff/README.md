@@ -112,11 +112,17 @@ Slack OAuth callback endpoint. Exchanges the code for user identity, validates d
 All endpoints require `X-Session-ID` header.
 
 - `POST /api/rag` - RAG query (with streaming)
+- `POST /api/retrieve` - Retrieve supporting chunks for a dataset-first query
+- `GET /api/config/:root/nodes?tenant=...` - List visible config nodes under the API key's ceilings
+- `POST /api/runtime/config/resolve` - Resolve runtime config for an explicit node slug
+- `POST /api/dataset/config/resolve` - Resolve dataset config for an explicit node slug
 - `GET /api/conversations` - List conversations
 - `POST /api/conversations` - Create conversation
 - `GET /api/conversations/:id` - Get conversation
 - `PUT /api/conversations/:id` - Update conversation
 - `DELETE /api/conversations/:id` - Delete conversation
+- `GET /api/datasets` - List datasets visible to the configured API key
+- `GET /api/datasets/:datasetId` - Get one visible dataset
 - `GET /api/filters` - Get filters
 - `PUT /api/filters` - Update filters
 - `GET /api/changelog` - Get changelog
@@ -125,7 +131,44 @@ All endpoints require `X-Session-ID` header.
 
 All API requests are proxied to the Clojure backend with:
 - `X-API-Key` header (Clojure API authentication)
-- `X-User-Email` header (user context)
+- `X-User-Id` header (public API user context)
+
+The configured `RAG_API_KEY` must already be provisioned upstream with the correct
+`dataset-scopes` and `allowed-config-keys` for every tenant this client uses. Public
+requests are dataset-first and use `tenant` plus `dataset-config-key`; they must not send
+legacy selector fields like `environment`, `pipeline`, `config-key`, or `tenant-config-key`.
+
+This BFF can inject fixed public request selectors from:
+- `RAG_PUBLIC_TENANT=<tenant>`
+- `RAG_PUBLIC_DATASET_CONFIG_KEY=<dataset-config-key>`
+- `RAG_PUBLIC_RUNTIME_CONFIG_KEY=<runtime-config-key>`
+- `RAG_PUBLIC_AGENT_ID=<agent-id>`
+
+If those env vars are set, `POST /api/rag` sends:
+- `tenant`
+- `dataset-config-key`
+- `runtime-config-key`
+- `agent-id`
+
+and `POST /api/retrieve` sends:
+- `tenant`
+- `dataset-config-key`
+
+When `POST /api/rag` continues an existing conversation via `conversation-id`, this BFF does
+not forward `agent-id`. The upstream conversation's existing agent must remain authoritative.
+
+This BFF also keeps optional config helper routes that can inject fixed node selectors from:
+- `RAG_PLATFORM_CONFIG=<tenant>/platform/<node-slug>`
+- `RAG_RUNTIME_CONFIG=<tenant>/runtime/<node-slug>`
+- `RAG_DATASET_CONFIG=<tenant>/dataset/<node-slug>`
+
+If those env vars are set, they must all target the same tenant. The config resolve
+endpoints use the matching root-specific node slug.
+
+This BFF currently targets the public Digdir RAG API surface only. The JWT-backed
+operator console routes under `/console-api/...` are not proxied here because this
+application does not maintain or forward the upstream `auth-token` cookie required
+for operator access.
 
 ## Development
 
@@ -138,6 +181,11 @@ npm run dev
 ```bash
 npm run check
 ```
+
+### Logging
+Set `LOG_LEVEL=debug` to log upstream proxy request/response details, including
+request IDs, proxied request bodies with sensitive fields redacted, upstream
+status codes, and non-streaming response previews.
 
 ### Build for production:
 ```bash

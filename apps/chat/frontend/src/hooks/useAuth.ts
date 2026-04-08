@@ -16,16 +16,21 @@ export function useAuth() {
 }
 
 // Get current user
-export function useMe() {
+export function useMe(options: { redirectOnAuthFailure?: boolean } = {}) {
   const { setUser, setLoading } = useAuthStore();
 
   return useQuery({
     queryKey: ["me"],
     queryFn: async () => {
       setLoading(true);
-      const user = await apiClient.getMe();
-      setUser(user);
-      return user;
+      try {
+        const user = await apiClient.getMe(options);
+        setUser(user);
+        return user;
+      } catch (error) {
+        setUser(null);
+        throw error;
+      }
     },
     retry: false,
     staleTime: Infinity,
