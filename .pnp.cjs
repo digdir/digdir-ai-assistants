@@ -494,6 +494,13 @@ const RAW_RUNTIME_STATE =
           ["regenerator-runtime", "npm:0.14.1"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:7.29.2", {\
+        "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.29.2-b49cad1c67-30b80a0140.zip/node_modules/@babel/runtime/",\
+        "packageDependencies": [\
+          ["@babel/runtime", "npm:7.29.2"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["@babel/template", [\
@@ -2361,18 +2368,18 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@mui/icons-material", [\
-      ["npm:5.16.7", {\
-        "packageLocation": "./.yarn/cache/@mui-icons-material-npm-5.16.7-3ba3ef0f30-49bab17543.zip/node_modules/@mui/icons-material/",\
+      ["npm:7.3.10", {\
+        "packageLocation": "./.yarn/cache/@mui-icons-material-npm-7.3.10-a7b874af48-22a8721f40.zip/node_modules/@mui/icons-material/",\
         "packageDependencies": [\
-          ["@mui/icons-material", "npm:5.16.7"]\
+          ["@mui/icons-material", "npm:7.3.10"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.16.7", {\
-        "packageLocation": "./.yarn/__virtual__/@mui-icons-material-virtual-b2deca21aa/0/cache/@mui-icons-material-npm-5.16.7-3ba3ef0f30-49bab17543.zip/node_modules/@mui/icons-material/",\
+      ["virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:7.3.10", {\
+        "packageLocation": "./.yarn/__virtual__/@mui-icons-material-virtual-f7add37acd/0/cache/@mui-icons-material-npm-7.3.10-a7b874af48-22a8721f40.zip/node_modules/@mui/icons-material/",\
         "packageDependencies": [\
-          ["@mui/icons-material", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.16.7"],\
-          ["@babel/runtime", "npm:7.24.6"],\
+          ["@mui/icons-material", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:7.3.10"],\
+          ["@babel/runtime", "npm:7.29.2"],\
           ["@mui/material", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.16.7"],\
           ["@types/mui__material", null],\
           ["@types/react", "npm:18.3.12"],\
@@ -4473,7 +4480,7 @@ const RAW_RUNTIME_STATE =
           ["@fortawesome/fontawesome-svg-core", "npm:6.6.0"],\
           ["@fortawesome/free-solid-svg-icons", "npm:6.6.0"],\
           ["@fortawesome/react-fontawesome", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:0.2.2"],\
-          ["@mui/icons-material", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.16.7"],\
+          ["@mui/icons-material", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:7.3.10"],\
           ["@mui/lab", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.0.0-alpha.173"],\
           ["@mui/material", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.16.7"],\
           ["@mui/system", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.16.7"],\
