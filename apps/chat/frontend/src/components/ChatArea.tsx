@@ -152,6 +152,8 @@ export function ChatArea() {
     setActiveChunks(chunks);
   };
 
+  const visibleMessages = messages.filter((m) => m.role !== "system");
+
   /**
    * Get the display text for a message, stripping the suggestions section
    * from the last assistant message when suggestions are active.
@@ -161,7 +163,7 @@ export function ChatArea() {
       message.role === "assistant" &&
       suggestions.length > 0 &&
       suggestionsStrippedSuffix &&
-      idx === messages.length - 1 &&
+      idx === visibleMessages.length - 1 &&
       message.text.endsWith(suggestionsStrippedSuffix)
     ) {
       return message.text.slice(0, message.text.length - suggestionsStrippedSuffix.length).trimEnd();
@@ -205,13 +207,13 @@ export function ChatArea() {
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {isLoading ? (
           <div className="text-center text-gray-500 py-8">Loading messages...</div>
-        ) : messages.length === 0 && !streamingMessage && !isStreaming ? (
+        ) : visibleMessages.length === 0 && !streamingMessage && !isStreaming ? (
           <div className="text-center text-gray-500 py-8">
             No messages yet. Start the conversation!
           </div>
         ) : (
           <div className="space-y-6 max-w-4xl mx-auto">
-            {messages.map((message, idx) => {
+            {visibleMessages.map((message, idx) => {
               const displayText = getMessageText(message, idx);
               return (
                 <div
