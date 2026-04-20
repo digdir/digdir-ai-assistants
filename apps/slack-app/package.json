@@ -30,7 +30,7 @@
     "dataclass": "^2.1.1",
     "es-abstract": "^1.23.3",
     "express": "^4.21.2",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "lodash": "^4.17.21",
     "openai": "^4.79.0",
     "path-to-regexp": "^6.0.0",
