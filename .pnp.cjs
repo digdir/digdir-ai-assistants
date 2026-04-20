@@ -641,7 +641,7 @@ const RAW_RUNTIME_STATE =
           ["@types/playwright", null],\
           ["@types/puppeteer", null],\
           ["ow", "npm:0.28.2"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["puppeteer", null],\
           ["tslib", "npm:2.8.1"],\
           ["type-fest", "npm:4.26.1"]\
@@ -666,7 +666,7 @@ const RAW_RUNTIME_STATE =
           ["@types/playwright", null],\
           ["@types/puppeteer", null],\
           ["ow", "npm:0.28.2"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["puppeteer", null],\
           ["tslib", "npm:2.8.1"],\
           ["type-fest", "npm:4.26.1"]\
@@ -742,7 +742,7 @@ const RAW_RUNTIME_STATE =
           ["nanoid", "npm:3.3.7"],\
           ["ow", "npm:0.28.2"],\
           ["p-limit", "npm:3.1.0"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["proxy-chain", "npm:2.5.4"],\
           ["puppeteer", null],\
           ["quick-lru", "npm:5.1.1"],\
@@ -773,7 +773,7 @@ const RAW_RUNTIME_STATE =
           ["nanoid", "npm:3.3.7"],\
           ["ow", "npm:0.28.2"],\
           ["p-limit", "npm:3.1.0"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["proxy-chain", "npm:2.5.4"],\
           ["puppeteer", null],\
           ["quick-lru", "npm:5.1.1"],\
@@ -1057,7 +1057,7 @@ const RAW_RUNTIME_STATE =
           ["ml-logistic-regression", "npm:2.0.0"],\
           ["ml-matrix", "npm:6.12.0"],\
           ["ow", "npm:0.28.2"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["string-comparison", "npm:1.3.0"],\
           ["tslib", "npm:2.8.1"]\
         ],\
@@ -1087,7 +1087,7 @@ const RAW_RUNTIME_STATE =
           ["ml-logistic-regression", "npm:2.0.0"],\
           ["ml-matrix", "npm:6.12.0"],\
           ["ow", "npm:0.28.2"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["string-comparison", "npm:1.3.0"],\
           ["tslib", "npm:2.8.1"]\
         ],\
@@ -4543,7 +4543,7 @@ const RAW_RUNTIME_STATE =
           ["commander", "npm:12.1.0"],\
           ["crawlee", "virtual:93de7ac422244803c188066537ae624c326819cee75009ae09b380c101ff0fbad4ad4d7ffab22b030756d2b37e6f5879c0f5ccd96e4bfdf338e7937638d2e891#npm:3.11.2"],\
           ["openai", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:4.79.0"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["prettier", "npm:3.3.3"],\
           ["remeda", "npm:2.16.0"],\
           ["rimraf", "npm:6.0.1"],\
@@ -5339,7 +5339,7 @@ const RAW_RUNTIME_STATE =
           ["@types/playwright", null],\
           ["@types/puppeteer", null],\
           ["import-local", "npm:3.2.0"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["puppeteer", null],\
           ["tslib", "npm:2.8.1"]\
         ],\
@@ -6818,7 +6818,7 @@ const RAW_RUNTIME_STATE =
           ["@types/playwright", null],\
           ["@types/puppeteer", null],\
           ["fingerprint-generator", "npm:2.1.57"],\
-          ["playwright", "npm:1.49.1"],\
+          ["playwright", "npm:1.59.1"],\
           ["puppeteer", null],\
           ["tslib", "npm:2.8.1"]\
         ],\
@@ -10294,6 +10294,15 @@ const RAW_RUNTIME_STATE =
           ["playwright-core", "npm:1.49.1"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:1.59.1", {\
+        "packageLocation": "./.yarn/cache/playwright-npm-1.59.1-8e8808a3f1-dfe38396e6.zip/node_modules/playwright/",\
+        "packageDependencies": [\
+          ["playwright", "npm:1.59.1"],\
+          ["fsevents", "patch:fsevents@npm%3A2.3.2#optional!builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"],\
+          ["playwright-core", "npm:1.59.1"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["playwright-core", [\
@@ -10301,6 +10310,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/unplugged/playwright-core-npm-1.49.1-a372dbc965/node_modules/playwright-core/",\
         "packageDependencies": [\
           ["playwright-core", "npm:1.49.1"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:1.59.1", {\
+        "packageLocation": "./.yarn/cache/playwright-core-npm-1.59.1-e63605649f-d41a74d968.zip/node_modules/playwright-core/",\
+        "packageDependencies": [\
+          ["playwright-core", "npm:1.59.1"]\
         ],\
         "linkType": "HARD"\
       }]\
