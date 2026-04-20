@@ -29,6 +29,7 @@
   "resolutions": {
     "buffer-equal-constant-time@npm:1.0.1": "patch:buffer-equal-constant-time@npm%3A1.0.1#~/.yarn/patches/buffer-equal-constant-time-npm-1.0.1-41826f3419.patch",
     "form-data@npm:^2.5.0": "2.5.5",
-    "form-data@npm:^4.0.0": "4.0.5"
+    "form-data@npm:^4.0.0": "4.0.5",
+    "flatted@npm:^3.2.9": "3.4.2"
   }
 }
