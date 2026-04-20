@@ -4950,7 +4950,7 @@ const RAW_RUNTIME_STATE =
           ["@npmcli/fs", "npm:3.1.1"],\
           ["cacache", "npm:18.0.4"],\
           ["fs-minipass", "npm:3.0.3"],\
-          ["glob", "npm:10.4.5"],\
+          ["glob", "npm:10.5.0"],\
           ["lru-cache", "npm:10.4.3"],\
           ["minipass", "npm:7.1.2"],\
           ["minipass-collect", "npm:2.0.1"],\
@@ -5862,10 +5862,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["diff", [\
-      ["npm:4.0.2", {\
-        "packageLocation": "./.yarn/cache/diff-npm-4.0.2-73133c7102-81b91f9d39.zip/node_modules/diff/",\
+      ["npm:4.0.4", {\
+        "packageLocation": "./.yarn/cache/diff-npm-4.0.4-e9ea573423-855fb70b09.zip/node_modules/diff/",\
         "packageDependencies": [\
-          ["diff", "npm:4.0.2"]\
+          ["diff", "npm:4.0.4"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -7386,11 +7386,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["glob", [\
-      ["npm:10.4.5", {\
-        "packageLocation": "./.yarn/cache/glob-npm-10.4.5-8c63175f05-19a9759ea7.zip/node_modules/glob/",\
+      ["npm:10.5.0", {\
+        "packageLocation": "./.yarn/cache/glob-npm-10.5.0-b569657078-100705eddb.zip/node_modules/glob/",\
         "packageDependencies": [\
           ["foreground-child", "npm:3.3.0"],\
-          ["glob", "npm:10.4.5"],\
+          ["glob", "npm:10.5.0"],\
           ["jackspeak", "npm:3.4.3"],\
           ["minimatch", "npm:9.0.9"],\
           ["minipass", "npm:7.1.2"],\
@@ -9975,7 +9975,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["env-paths", "npm:2.2.1"],\
           ["exponential-backoff", "npm:3.1.1"],\
-          ["glob", "npm:10.4.5"],\
+          ["glob", "npm:10.5.0"],\
           ["graceful-fs", "npm:4.2.11"],\
           ["make-fetch-happen", "npm:13.0.1"],\
           ["node-gyp", "npm:10.2.0"],\
@@ -12434,7 +12434,7 @@ const RAW_RUNTIME_STATE =
           ["acorn-walk", "npm:8.3.4"],\
           ["arg", "npm:4.1.3"],\
           ["create-require", "npm:1.1.1"],\
-          ["diff", "npm:4.0.2"],\
+          ["diff", "npm:4.0.4"],\
           ["make-error", "npm:1.3.6"],\
           ["ts-node", "virtual:a20587c5c30dd389a37ca4e307e53acdde0b18298a5e50a6e2a5c2be058069ab5cdba932fd9656e883313d381df18e1b0ff20704b5ca65ff278c6517a2b94927#npm:10.9.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
