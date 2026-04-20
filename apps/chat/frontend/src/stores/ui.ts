@@ -9,6 +9,9 @@ interface UIState {
   // Mobile menu
   mobileMenuOpen: boolean;
 
+  // AI Search modal
+  aiSearchOpen: boolean;
+
   // Active conversation
   activeConversationId: string | null;
 
@@ -25,6 +28,8 @@ interface UIState {
   setRightSidebarOpen: (open: boolean) => void;
   toggleMobileMenu: () => void;
   setMobileMenuOpen: (open: boolean) => void;
+  setAiSearchOpen: (open: boolean) => void;
+  toggleAiSearch: () => void;
   setActiveConversationId: (id: string | null) => void;
   setActiveChunks: (chunks: MessageChunk[]) => void;
   setHighlightedChunkIndex: (index: number | null) => void;
@@ -35,6 +40,7 @@ export const useUIStore = create<UIState>((set) => ({
   leftSidebarOpen: true,
   rightSidebarOpen: false,
   mobileMenuOpen: false,
+  aiSearchOpen: false,
   activeConversationId: null,
   activeChunks: [],
   highlightedChunkIndex: null,
@@ -57,6 +63,12 @@ export const useUIStore = create<UIState>((set) => ({
 
   setMobileMenuOpen: (open: boolean) =>
     set({ mobileMenuOpen: open }),
+
+  setAiSearchOpen: (open: boolean) =>
+    set({ aiSearchOpen: open }),
+
+  toggleAiSearch: () =>
+    set((state) => ({ aiSearchOpen: !state.aiSearchOpen })),
 
   setActiveConversationId: (id: string | null) =>
     set({ activeConversationId: id }),

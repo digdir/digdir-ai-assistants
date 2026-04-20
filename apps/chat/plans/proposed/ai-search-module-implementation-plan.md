@@ -1,104 +1,98 @@
 # AI Search Module Implementation Plan
 
 ## Goal
-Implement a new `AI Search` module above the current chat interface, while preserving the existing `AI Chat` layout and behavior.
+Implement `AI Search` as a modal/popover experience that can be opened from the main page without replacing the existing `AI Chat` flow.
 
-## Proposed Workstreams
+The search surface should:
+- feel transient and fast
+- use more viewport space than the inline module
+- keep the generated answer visually separate from the source results
+- avoid blending into the normal conversations panel
 
-### 1. Add Mode State
-Introduce a UI-level mode switch that tracks whether the user is looking at:
-- `chat`
-- `search`
+## Product Shape
+
+### Entry Point
+- Add a small `AI Search` launcher in the main page chrome.
+- The launcher should open a modal/popover overlay.
+- Closing the overlay should preserve the current chat view unchanged.
+
+### Modal Layout
+The modal should use an internal two-pane layout on larger screens:
+1. Query/header row
+2. Generated answer panel
+3. Search results / source list panel
+
+On smaller screens:
+- stack the answer above the results
+- keep the query bar visible near the top
+- avoid forcing horizontal scrolling
+
+### Conversation Strategy
+Search still uses the public RAG flow, but it must not look like a normal chat session.
+
+- Tag search-created conversations with `ai-search`
+- Keep those conversations out of the default chat list
+- Allow an optional dedicated search-history section if we want it later
+
+### UI State Strategy
+Keep modal open/close state in the UI store.
+
+- `aiSearchOpen`
+- `setAiSearchOpen(open)`
+
+Keep query/result state local to the search component or a dedicated hook.
+
+## Proposed Component Breakdown
+
+### 1. `AiSearchLauncher`
+Compact trigger button or pill that opens the modal.
 
 Likely location:
-- [`frontend/src/stores/ui.ts`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/stores/ui.ts)
-
-Expected behavior:
-- default to the current chat experience unless explicitly switched
-- persist the selected mode for the session if practical
-- keep conversation selection independent from mode
-
-### 2. Build the Search Module Shell
-Create a new component for the search surface and mount it at the top of the home view.
-
-Likely component split:
-- new `AI Search` wrapper component
-- query input bar
-- answer summary card
-- source preview list
-
-Likely location:
-- [`frontend/src/components/`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/components/)
 - [`frontend/src/pages/HomePage.tsx`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/pages/HomePage.tsx)
+- or the top of the main content column
 
-### 3. Reuse Existing Evidence Data
-Use the existing `chunks` and citation model as the source-of-truth for evidence display.
+### 2. `AiSearchModule`
+The modal/popover container and search logic owner.
 
-Likely reuse points:
-- [`frontend/src/components/CitationMarker.tsx`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/components/CitationMarker.tsx)
-- [`frontend/src/components/ChunksSidebar.tsx`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/components/ChunksSidebar.tsx)
-- [`frontend/src/types/index.ts`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/types/index.ts)
+Responsibilities:
+- render the overlay/backdrop
+- manage close behavior
+- run the query flow
+- coordinate answer and results rendering
 
-Implementation detail:
-- render chunks inline in the new module rather than only in a right rail
-- preserve click-to-highlight behavior
-- keep source content collapsible
+### 3. `AiSearchAnswerPanel`
+Displays the synthesized answer and citations.
 
-### 4. Add Search-Specific Rendering
-The search module should render:
-- the answer in a compact card
-- citation-linked claims
-- a ranked source list or evidence cards
+### 4. `AiSearchResultsPanel`
+Displays source cards or search result snippets.
 
-Behavior:
-- the answer should be shown before the sources
-- each citation should map to a visible source item
-- source expansion should be shallow by default, deeper on demand
+### 5. `AiSearchResultItem`
+Renders a single source card with expand/collapse behavior.
 
-### 5. Keep Chat Unchanged
-Leave the current chat layout intact for `AI Chat`.
+### 6. `conversation-tags` utility
+Shared helpers for normalizing and checking `ai-search` tags.
 
-Implementation approach:
-- keep the current `ChatArea` path operational
-- place the search module above it in `HomePage`
-- ensure the page still renders correctly when the search module is hidden or empty
+## Data Flow
 
-### 6. Update Copy and Labels
-Add new i18n keys for the search mode and its UI copy.
+1. User opens `AI Search`.
+2. User submits a query.
+3. Client resolves dataset scope with `/api/retrieve`.
+4. Client sends the actual `/api/rag` query with the returned tenant and dataset config key.
+5. Response returns generated answer, source chunks, and optionally a conversation id.
+6. If a conversation id is returned, client tags that conversation with `ai-search`.
+7. Sidebar shows chat conversations separately from search conversations.
 
-Likely files:
-- [`frontend/src/i18n/en.ts`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/i18n/en.ts)
-- [`frontend/src/i18n/no.ts`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/i18n/no.ts)
-
-Suggested content:
-- mode labels
-- search placeholder text
-- source/evidence labels
-- compact helper copy for embedded use
-
-### 7. Add Styling for Compact Embeds
-Create a dedicated visual treatment for the search module.
-
-Styling requirements:
-- reduced padding and margins
-- strong answer/source hierarchy
-- responsive one-column layout
-- no dependency on the right sidebar
-- mobile-safe scrolling and expansion behavior
-
-Likely file:
-- [`frontend/src/index.css`](/Users/bdbrodie/dev/altinn/assistants/apps/chat/frontend/src/index.css)
-
-## Suggested Delivery Order
-1. Add mode state and shared labels
-2. Build the search module shell
-3. Wire in evidence rendering and citation navigation
-4. Style the module for embedded/mobile use
-5. Verify chat still behaves exactly as before
+## Delivery Order
+1. Add modal open/close state to the UI store.
+2. Add the launcher button in the main page chrome.
+3. Convert the existing search surface into a modal/popover layout.
+4. Split the modal body into answer and results panes.
+5. Keep the `ai-search` tag filtering in the sidebar.
+6. Verify chat remains unchanged.
 
 ## Acceptance Criteria
-- `AI Search` appears above the existing chat area
-- the search module shows answer plus sources in one surface
-- the module remains usable in a narrow embedded container
-- the current chat experience is still available
-- citations continue to work against displayed source content
+- `AI Search` opens in a modal/popover instead of occupying the top of the page
+- the answer and evidence are visibly separated
+- search conversations are tagged and do not mix with normal chat threads
+- the current chat experience remains intact
+- the modal works on both desktop and smaller screens

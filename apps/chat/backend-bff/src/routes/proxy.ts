@@ -24,6 +24,10 @@ function getRequestScopeMeta(body: unknown): Record<string, unknown> {
   };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function getRequestId(req: Request): string {
   return req.requestId || "unknown";
 }
@@ -77,6 +81,61 @@ async function getResponsePreview(response: globalThis.Response): Promise<string
   }
 }
 
+function getJsonResponseSummary(data: unknown): Record<string, unknown> {
+  if (!isRecord(data)) {
+    return {
+      responseType: Array.isArray(data) ? "array" : typeof data,
+    };
+  }
+
+  const rawChunks = Array.isArray(data["chunks-used"])
+    ? data["chunks-used"]
+    : Array.isArray(data.chunksUsed)
+      ? data.chunksUsed
+      : [];
+  const firstChunk = rawChunks[0];
+
+  return {
+    responseKeys: Object.keys(data),
+    conversationId:
+      typeof data["conversation-id"] === "string"
+        ? data["conversation-id"]
+        : typeof data.conversationId === "string"
+          ? data.conversationId
+          : null,
+    chunkCount: rawChunks.length,
+    firstChunkKeys: isRecord(firstChunk) ? Object.keys(firstChunk) : [],
+    firstChunkSummary: isRecord(firstChunk)
+      ? {
+          chunkId:
+            typeof firstChunk["chunk-id"] === "string"
+              ? firstChunk["chunk-id"]
+              : typeof firstChunk.chunkId === "string"
+                ? firstChunk.chunkId
+                : null,
+          docTitle:
+            typeof firstChunk["doc-title"] === "string"
+              ? firstChunk["doc-title"]
+              : typeof firstChunk.docTitle === "string"
+                ? firstChunk.docTitle
+                : null,
+          docNum:
+            typeof firstChunk["doc-num"] === "string"
+              ? firstChunk["doc-num"]
+              : typeof firstChunk.docNum === "string"
+                ? firstChunk.docNum
+                : null,
+          contentMarkdownLength:
+            typeof firstChunk["content-markdown"] === "string"
+              ? firstChunk["content-markdown"].length
+              : typeof firstChunk.contentMarkdown === "string"
+                ? firstChunk.contentMarkdown.length
+                : null,
+        }
+      : null,
+  };
+}
+
 async function sendProxyResponse(
   req: Request,
   res: Response,
@@ -96,15 +155,24 @@ async function sendProxyResponse(
     upstreamBodyPreview: preview,
   };
 
+  if (isJsonContentType(contentType)) {
+    const data = await response.json();
+    const jsonMeta = {
+      ...meta,
+      ...(shouldPreviewBody ? { responseShape: getJsonResponseSummary(data) } : {}),
+    };
+    if (response.ok) {
+      logger.debug("Proxy upstream response", jsonMeta);
+    } else {
+      logger.warn("Proxy upstream response was not OK", jsonMeta);
+    }
+    return res.status(response.status).json(data);
+  }
+
   if (response.ok) {
     logger.debug("Proxy upstream response", meta);
   } else {
     logger.warn("Proxy upstream response was not OK", meta);
-  }
-
-  if (isJsonContentType(contentType)) {
-    const data = await response.json();
-    return res.status(response.status).json(data);
   }
 
   const text = await response.text();

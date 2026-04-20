@@ -77,26 +77,31 @@ export interface RagRequest {
 
 export interface RagResponse {
   answer: string;
-  conversationId: string;
+  conversationId?: string;
+  "conversation-id"?: string;
   model: string;
-  chunksUsed: Array<{
-    chunkId: string;
-    docTitle: string;
-    docNum: string;
-    contentMarkdown?: string;
-  }>;
+  chunksUsed?: RagChunk[];
+  "chunks-used"?: RagChunk[];
+}
+
+export interface RagChunk {
+  chunkId?: string;
+  docTitle?: string;
+  docNum?: string;
+  contentMarkdown?: string;
+  "chunk-id"?: string;
+  "doc-title"?: string;
+  "doc-num"?: string;
+  "content-markdown"?: string;
 }
 
 export interface RagQueryResponse {
   answer: string;
-  "conversation-id": string;
+  "conversation-id"?: string;
+  conversationId?: string;
   model: string;
-  "chunks-used": Array<{
-    chunkId: string;
-    docTitle: string;
-    docNum: string;
-    contentMarkdown?: string;
-  }>;
+  "chunks-used"?: RagChunk[];
+  chunksUsed?: RagChunk[];
 }
 
 export interface RetrieveRequest {
