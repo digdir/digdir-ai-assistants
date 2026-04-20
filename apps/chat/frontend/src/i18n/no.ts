@@ -20,6 +20,26 @@ const no: Translations = {
   "chat.sending": "Sender...",
   "chat.send": "Send",
 
+  // AiSearchModule
+  "search.title": "AI-s\u00f8k",
+  "search.subtitle": "Still et presist sp\u00f8rsm\u00e5l og f\u00e5 et svar med kildereferanser.",
+  "search.compactHint": "Kompakt modus for innebygde visninger",
+  "search.placeholder": "S\u00f8k i kunnskapsbasen...",
+  "search.submit": "S\u00f8k",
+  "search.loading": "S\u00f8ker...",
+  "search.empty": "Still et sp\u00f8rsm\u00e5l for \u00e5 se et kort svar og kildkort her.",
+  "search.error": "S\u00f8ket feilet. Pr\u00f8v igjen.",
+  "search.answer": "Svar",
+  "search.basedOn": "Basert p\u00e5 {count} kilde(r)",
+  "search.sources": "Kilder ({count})",
+  "search.sourcesHint": "Trykk p\u00e5 en kilde for \u00e5 utvide den",
+  "search.document": "Dokument: {value}",
+  "search.chunkId": "Utdrags-ID: {value}",
+  "search.untitledDocument": "Uten tittel",
+  "search.na": "Ikke tilgj.",
+  "search.noSources": "Ingen kildetekst returnert",
+  "search.noContent": "Innhold ikke tilgjengelig",
+
   // ChunksSidebar
   "sources.title": "Kilder ({count})",
   "sources.description": "Utdrag brukt til \u00e5 generere svaret",

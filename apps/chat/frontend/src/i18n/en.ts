@@ -18,6 +18,26 @@ const en = {
   "chat.sending": "Sending...",
   "chat.send": "Send",
 
+  // AiSearchModule
+  "search.title": "AI Search",
+  "search.subtitle": "Ask a focused question and get an answer with source evidence.",
+  "search.compactHint": "Compact mode for embedded layouts",
+  "search.placeholder": "Search the knowledge base...",
+  "search.submit": "Search",
+  "search.loading": "Searching...",
+  "search.empty": "Ask a question to see a compact answer and source cards here.",
+  "search.error": "Search failed. Please try again.",
+  "search.answer": "Answer",
+  "search.basedOn": "Based on {count} source(s)",
+  "search.sources": "Sources ({count})",
+  "search.sourcesHint": "Tap a source to expand it",
+  "search.document": "Document: {value}",
+  "search.chunkId": "Chunk ID: {value}",
+  "search.untitledDocument": "Untitled Document",
+  "search.na": "N/A",
+  "search.noSources": "No source content returned",
+  "search.noContent": "Content not available",
+
   // ChunksSidebar
   "sources.title": "Sources ({count})",
   "sources.description": "Chunks used to generate the answer",

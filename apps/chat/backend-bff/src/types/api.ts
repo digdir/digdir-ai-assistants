@@ -23,6 +23,7 @@ export interface Conversation {
   userId: string;
   title?: string;
   folder?: string;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -32,6 +33,7 @@ export interface Message {
   conversationId: string;
   role: "user" | "assistant";
   content: string;
+  tags?: string[];
   metadata?: {
     chunksUsed?: Array<{
       chunkId: string;

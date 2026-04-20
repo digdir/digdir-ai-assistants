@@ -8,6 +8,7 @@ import type {
   CreateConversationRequest,
   UpdateConversationRequest,
   RagRequest,
+  RagQueryResponse,
   RetrieveRequest,
   RetrieveResponse,
   Dataset,
@@ -19,6 +20,7 @@ import type {
   ResolveRuntimeConfigRequest,
   ResolveDatasetConfigRequest,
 } from "@/types";
+import { normalizeTags } from "@/utils/conversation-tags";
 
 class ApiClient {
   private baseUrl: string;
@@ -149,19 +151,29 @@ class ApiClient {
 
   // ========== Conversations ==========
 
-  async getConversations(): Promise<Conversation[]> {
-    const data = await this.request<ConversationsResponse>("/api/conversations");
+  async getConversations(options: { tags?: string[] } = {}): Promise<Conversation[]> {
+    const query = new URLSearchParams();
+    const tags = normalizeTags(options.tags);
+
+    if (tags.length > 0) {
+      query.set("tags", tags.join(","));
+    }
+
+    const suffix = query.size > 0 ? `?${query.toString()}` : "";
+    const data = await this.request<ConversationsResponse>(`/api/conversations${suffix}`);
     return data.conversations;
   }
 
   async createConversation(
     request: CreateConversationRequest
   ): Promise<Conversation> {
+    const tags = normalizeTags(request.tags);
+    const body = request.tags === undefined ? request : { ...request, tags };
     const data = await this.request<{ conversation: Conversation }>(
       "/api/conversations",
       {
         method: "POST",
-        body: JSON.stringify(request),
+        body: JSON.stringify(body),
       }
     );
     return data.conversation;
@@ -177,11 +189,13 @@ class ApiClient {
     id: string,
     request: UpdateConversationRequest
   ): Promise<Conversation> {
+    const tags = request.tags === undefined ? undefined : normalizeTags(request.tags);
+    const body = tags === undefined ? request : { ...request, tags };
     const data = await this.request<{ conversation: Conversation }>(
       `/api/conversations/${id}`,
       {
         method: "PUT",
-        body: JSON.stringify(request),
+        body: JSON.stringify(body),
       }
     );
     return data.conversation;
@@ -342,8 +356,8 @@ class ApiClient {
   }
 
   // Simple non-streaming RAG query (for testing/simple use cases)
-  async query(request: RagRequest) {
-    return await this.request("/api/rag", {
+  async query(request: RagRequest): Promise<RagQueryResponse> {
+    return await this.request<RagQueryResponse>("/api/rag", {
       method: "POST",
       body: JSON.stringify({
         query: request.query,

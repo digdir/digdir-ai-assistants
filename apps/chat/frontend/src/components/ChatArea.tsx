@@ -197,7 +197,7 @@ export function ChatArea() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
+    <div className="flex-1 min-h-0 flex flex-col bg-white">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">

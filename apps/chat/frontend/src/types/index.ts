@@ -19,6 +19,7 @@ export interface Conversation {
   entityId: string;
   userId: string;
   folder?: string;
+  tags?: string[];
   created: number;
 }
 
@@ -26,6 +27,7 @@ export interface Message {
   id: string;
   text: string;
   role: "user" | "assistant" | "system";
+  tags?: string[];
   created: number;
   chunks?: MessageChunk[];
 }
@@ -85,6 +87,18 @@ export interface RagResponse {
   }>;
 }
 
+export interface RagQueryResponse {
+  answer: string;
+  "conversation-id": string;
+  model: string;
+  "chunks-used": Array<{
+    chunkId: string;
+    docTitle: string;
+    docNum: string;
+    contentMarkdown?: string;
+  }>;
+}
+
 export interface RetrieveRequest {
   query: string;
   tenant?: string;
@@ -118,6 +132,7 @@ export interface FilterField {
 // API response types
 export interface ConversationsResponse {
   conversations: Conversation[];
+  total?: number;
 }
 
 export interface ConversationResponse {
@@ -156,11 +171,13 @@ export interface CreateConversationRequest {
   title?: string;
   entityId?: string;
   folder?: string;
+  tags?: string[];
 }
 
 export interface UpdateConversationRequest {
   title?: string;
   folder?: string;
+  tags?: string[];
 }
 
 // Error types

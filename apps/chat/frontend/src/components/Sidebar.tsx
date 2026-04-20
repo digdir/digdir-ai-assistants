@@ -5,10 +5,15 @@ import { useUIStore } from "@/stores/ui";
 import { useAuthStore } from "@/stores/auth";
 import { useTranslation } from "@/i18n";
 import type { Locale } from "@/i18n";
+import type { Conversation } from "@/types";
+import { AI_SEARCH_TAG, hasTag } from "@/utils/conversation-tags";
 
 export function Sidebar() {
   const { t, locale, setLocale } = useTranslation();
   const { data: conversationsData, isLoading } = useConversations();
+  const { data: searchConversationsData, isLoading: isSearchLoading } = useConversations({
+    tags: [AI_SEARCH_TAG],
+  });
   const createConversation = useCreateConversation();
   const deleteConversation = useDeleteConversation();
   const { activeConversationId, setActiveConversationId, leftSidebarOpen, toggleLeftSidebar } =
@@ -18,10 +23,18 @@ export function Sidebar() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const conversations = conversationsData || [];
+  const searchConversations = searchConversationsData || [];
+  const queryValue = searchQuery.toLowerCase();
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.topic?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const matchesSearch = (conversation: Conversation) =>
+    conversation.topic?.toLowerCase().includes(queryValue) ||
+    conversation.tags?.some((tag) => tag.toLowerCase().includes(queryValue));
+
+  const chatConversations = conversations
+    .filter((conversation) => !hasTag(conversation.tags, AI_SEARCH_TAG))
+    .filter(matchesSearch);
+
+  const filteredSearchConversations = searchConversations.filter(matchesSearch);
 
   const handleNewChat = async () => {
     try {
@@ -48,6 +61,111 @@ export function Sidebar() {
 
   const handleLogout = () => {
     logoutMutation.mutate();
+  };
+
+  const renderConversationItem = (
+    conversation: Conversation,
+    variant: "chat" | "search" = "chat"
+  ) => (
+    <div
+      key={conversation.id}
+      onClick={() => setActiveConversationId(conversation.id)}
+      className={`
+        p-3 mb-1 rounded-lg cursor-pointer group relative border
+        ${
+          activeConversationId === conversation.id
+            ? "bg-primary text-white border-primary"
+            : variant === "search"
+              ? "bg-primary/5 text-gray-900 border-primary/15 hover:bg-primary/10"
+              : "hover:bg-gray-100 text-gray-900 border-transparent"
+        }
+      `}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="font-medium truncate">
+            {conversation.topic || t("chat.newConversation")}
+          </div>
+          {variant === "search" && (
+            <div
+              className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                activeConversationId === conversation.id
+                  ? "bg-white/20 text-white"
+                  : "bg-primary/10 text-primary"
+              }`}
+            >
+              {t("search.title")}
+            </div>
+          )}
+          {conversation.folder && (
+            <div
+              className={`text-xs mt-1 ${
+                activeConversationId === conversation.id
+                  ? "text-white/70"
+                  : "text-gray-500"
+              }`}
+            >
+              {conversation.folder}
+            </div>
+          )}
+          <div
+            className={`text-xs mt-1 ${
+              activeConversationId === conversation.id
+                ? "text-white/70"
+                : "text-gray-400"
+            }`}
+          >
+            {new Date(conversation.created).toLocaleDateString()}
+          </div>
+        </div>
+        <button
+          onClick={(e) => handleDeleteConversation(conversation.id, e)}
+          className={`
+            ml-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity
+            ${
+              activeConversationId === conversation.id
+                ? "hover:bg-white/20 text-white"
+                : "hover:bg-gray-200 text-gray-600"
+            }
+          `}
+          title={t("sidebar.deleteConversation")}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderConversationSection = (
+    title: string,
+    items: Conversation[],
+    emptyMessage: string,
+    variant: "chat" | "search" = "chat"
+  ) => {
+    if (items.length === 0) {
+      return (
+        <div className="px-4 pb-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 mb-2">
+            {title}
+          </div>
+          <div className="text-center text-gray-500 text-sm rounded-lg border border-dashed border-gray-200 bg-white px-3 py-4">
+            {emptyMessage}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="px-2 pb-2">
+        <div className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 flex items-center justify-between">
+          <span>{title}</span>
+          <span>{items.length}</span>
+        </div>
+        {items.map((conversation) => renderConversationItem(conversation, variant))}
+      </div>
+    );
   };
 
   if (!leftSidebarOpen) {
@@ -117,72 +235,28 @@ export function Sidebar() {
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto">
-        {isLoading ? (
+        {isLoading || isSearchLoading ? (
           <div className="p-4 text-center text-gray-500">{t("sidebar.loading")}</div>
-        ) : filteredConversations.length === 0 ? (
+        ) : chatConversations.length === 0 && filteredSearchConversations.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             {searchQuery ? t("sidebar.noConversationsFound") : t("sidebar.noConversationsYet")}
           </div>
         ) : (
-          <div className="p-2">
-            {filteredConversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                onClick={() => setActiveConversationId(conversation.id)}
-                className={`
-                  p-3 mb-1 rounded-lg cursor-pointer group relative
-                  ${
-                    activeConversationId === conversation.id
-                      ? "bg-primary text-white"
-                      : "hover:bg-gray-100 text-gray-900"
-                  }
-                `}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">
-                      {conversation.topic || t("chat.newConversation")}
-                    </div>
-                    {conversation.folder && (
-                      <div
-                        className={`text-xs mt-1 ${
-                          activeConversationId === conversation.id
-                            ? "text-white/70"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {conversation.folder}
-                      </div>
-                    )}
-                    <div
-                      className={`text-xs mt-1 ${
-                        activeConversationId === conversation.id
-                          ? "text-white/70"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {new Date(conversation.created).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                    className={`
-                      ml-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity
-                      ${
-                        activeConversationId === conversation.id
-                          ? "hover:bg-white/20 text-white"
-                          : "hover:bg-gray-200 text-gray-600"
-                      }
-                    `}
-                    title={t("sidebar.deleteConversation")}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="space-y-2 p-2">
+            {chatConversations.length > 0 &&
+              renderConversationSection(
+                t("sidebar.conversations"),
+                chatConversations,
+                t("sidebar.noConversationsYet"),
+                "chat"
+              )}
+            {filteredSearchConversations.length > 0 &&
+              renderConversationSection(
+                t("search.title"),
+                filteredSearchConversations,
+                t("sidebar.noConversationsYet"),
+                "search"
+              )}
           </div>
         )}
       </div>

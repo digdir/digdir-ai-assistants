@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { normalizeTags } from "@/utils/conversation-tags";
 import type {
   CreateConversationRequest,
   UpdateConversationRequest,
@@ -9,16 +10,18 @@ import type {
 export const conversationKeys = {
   all: ["conversations"] as const,
   lists: () => [...conversationKeys.all, "list"] as const,
-  list: () => [...conversationKeys.lists()] as const,
+  list: (tags?: string[]) => [...conversationKeys.lists(), normalizeTags(tags).join(",") || "all"] as const,
   details: () => [...conversationKeys.all, "detail"] as const,
   detail: (id: string) => [...conversationKeys.details(), id] as const,
 };
 
 // Get all conversations
-export function useConversations() {
+export function useConversations(options: { tags?: string[] } = {}) {
+  const tags = normalizeTags(options.tags);
+
   return useQuery({
-    queryKey: conversationKeys.list(),
-    queryFn: () => apiClient.getConversations(),
+    queryKey: conversationKeys.list(tags),
+    queryFn: () => apiClient.getConversations(tags.length > 0 ? { tags } : {}),
   });
 }
 

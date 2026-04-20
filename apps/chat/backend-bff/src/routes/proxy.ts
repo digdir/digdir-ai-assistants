@@ -6,6 +6,24 @@ import { logger, sanitizeForLogsValue } from "../utils/logger.js";
 const proxy = Router();
 const MAX_LOG_BODY_LENGTH = 2_000;
 
+function getRequestScopeMeta(body: unknown): Record<string, unknown> {
+  if (!body || typeof body !== "object") {
+    return {};
+  }
+
+  const record = body as Record<string, unknown>;
+  return {
+    hasTenant: typeof record.tenant === "string" && record.tenant.trim() !== "",
+    hasDatasetConfigKey:
+      typeof record["dataset-config-key"] === "string" && record["dataset-config-key"].trim() !== "",
+    hasRuntimeConfigKey:
+      typeof record["runtime-config-key"] === "string" && record["runtime-config-key"].trim() !== "",
+    hasAgentId: typeof record["agent-id"] === "string" && record["agent-id"].trim() !== "",
+    hasConversationId:
+      typeof record["conversation-id"] === "string" && record["conversation-id"].trim() !== "",
+  };
+}
+
 function getRequestId(req: Request): string {
   return req.requestId || "unknown";
 }
@@ -149,6 +167,7 @@ async function proxyRequest(
     upstreamUrl: url,
     query: req.query,
     body: sanitizeForLogsValue(getRequestBodyForLogs(options.body)),
+    requestScope: getRequestScopeMeta(options.body),
   });
 
   try {
@@ -367,7 +386,7 @@ proxy.post("/dataset/config/resolve", async (req, res) => {
  */
 proxy.get("/conversations", async (req, res) => {
   try {
-    const response = await proxyRequest(req, "/api/conversations");
+    const response = await proxyRequest(req, req.originalUrl);
     return await sendProxyResponse(req, res, response, "getConversations");
   } catch (error) {
     return handleProxyError(req, res, "getConversations", error, "Failed to get conversations");

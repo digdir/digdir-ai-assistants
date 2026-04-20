@@ -8,6 +8,15 @@ import { authMiddleware } from "./middleware/auth.js";
 import authRoutes from "./routes/auth.js";
 import proxyRoutes from "./routes/proxy.js";
 import { logger } from "./utils/logger.js";
+import { createHash } from "crypto";
+
+function fingerprint(value: string): string {
+  if (!value) {
+    return "";
+  }
+
+  return createHash("sha256").update(value).digest("hex").slice(0, 12);
+}
 
 // Create Express app
 const app = express();
@@ -128,6 +137,26 @@ API key set:     ${config.clojureApiKey ? "yes" : "no"}
 
 Ready to accept connections!
 `);
+
+logger.info("BFF RAG configuration snapshot", {
+  ragApiUrl: config.clojureApiUrl,
+  hasRagApiKey: Boolean(config.clojureApiKey),
+  ragApiKeyFingerprint: fingerprint(config.clojureApiKey),
+  ragApiKeyLength: config.clojureApiKey.length,
+  ragPublicTenant: config.ragPublicTenant || null,
+  ragPublicDatasetConfigKey: config.ragPublicDatasetConfigKey || null,
+  ragPublicRuntimeConfigKey: config.ragPublicRuntimeConfigKey || null,
+  ragPublicAgentId: config.ragPublicAgentId || null,
+  ragPlatformConfig: config.ragPlatformConfig
+    ? `${config.ragPlatformConfig.tenant}/${config.ragPlatformConfig.root}/${config.ragPlatformConfig.nodeSlug}`
+    : null,
+  ragRuntimeConfig: config.ragRuntimeConfig
+    ? `${config.ragRuntimeConfig.tenant}/${config.ragRuntimeConfig.root}/${config.ragRuntimeConfig.nodeSlug}`
+    : null,
+  ragDatasetConfig: config.ragDatasetConfig
+    ? `${config.ragDatasetConfig.tenant}/${config.ragDatasetConfig.root}/${config.ragDatasetConfig.nodeSlug}`
+    : null,
+});
 
 app.listen(config.port, () => {
   logger.info(`Server listening on port ${config.port}`);
