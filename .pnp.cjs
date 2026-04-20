@@ -9265,14 +9265,14 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["mdast-util-to-hast", [\
-      ["npm:13.2.0", {\
-        "packageLocation": "./.yarn/cache/mdast-util-to-hast-npm-13.2.0-538a77f867-9ee58def92.zip/node_modules/mdast-util-to-hast/",\
+      ["npm:13.2.1", {\
+        "packageLocation": "./.yarn/cache/mdast-util-to-hast-npm-13.2.1-c34c4454f4-3eeaf28a5e.zip/node_modules/mdast-util-to-hast/",\
         "packageDependencies": [\
           ["@types/hast", "npm:3.0.4"],\
           ["@types/mdast", "npm:4.0.4"],\
           ["@ungap/structured-clone", "npm:1.2.0"],\
           ["devlop", "npm:1.1.0"],\
-          ["mdast-util-to-hast", "npm:13.2.0"],\
+          ["mdast-util-to-hast", "npm:13.2.1"],\
           ["micromark-util-sanitize-uri", "npm:2.0.0"],\
           ["trim-lines", "npm:3.0.1"],\
           ["unist-util-position", "npm:5.0.0"],\
@@ -11008,7 +11008,7 @@ const RAW_RUNTIME_STATE =
           ["devlop", "npm:1.1.0"],\
           ["hast-util-to-jsx-runtime", "npm:2.3.2"],\
           ["html-url-attributes", "npm:3.0.1"],\
-          ["mdast-util-to-hast", "npm:13.2.0"],\
+          ["mdast-util-to-hast", "npm:13.2.1"],\
           ["react", "npm:18.3.1"],\
           ["react-markdown", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:9.1.0"],\
           ["remark-parse", "npm:11.0.0"],\
@@ -11227,7 +11227,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@types/hast", "npm:3.0.4"],\
           ["@types/mdast", "npm:4.0.4"],\
-          ["mdast-util-to-hast", "npm:13.2.0"],\
+          ["mdast-util-to-hast", "npm:13.2.1"],\
           ["remark-rehype", "npm:11.1.1"],\
           ["unified", "npm:11.0.5"],\
           ["vfile", "npm:6.0.3"]\
