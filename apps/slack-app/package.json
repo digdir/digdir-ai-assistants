@@ -18,7 +18,7 @@
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.12",
     "@babel/runtime": "^7.26.0",
-    "@bdb-dd/mack": "https://github.com/bdb-dd/mack.git#14338e54e63d85151e9065d28b25caa778b9a73a",
+    "@bdb-dd/mack": "https://github.com/bdb-dd/mack.git#be311d2dbdac752b6415960adbbf3747dd3a5552",
     "@digdir/assistant-lib": "1.0.0",
     "@instructor-ai/instructor": "1.7.0",
     "@slack/bolt": "^3.21.1",

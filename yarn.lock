@@ -494,14 +494,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bdb-dd/mack@https://github.com/bdb-dd/mack.git#14338e54e63d85151e9065d28b25caa778b9a73a":
+"@bdb-dd/mack@https://github.com/bdb-dd/mack.git#be311d2dbdac752b6415960adbbf3747dd3a5552":
   version: 1.2.1
-  resolution: "@bdb-dd/mack@https://github.com/bdb-dd/mack.git#commit=14338e54e63d85151e9065d28b25caa778b9a73a"
+  resolution: "@bdb-dd/mack@https://github.com/bdb-dd/mack.git#commit=be311d2dbdac752b6415960adbbf3747dd3a5552"
   dependencies:
-    "@slack/types": "npm:^2.11.0"
-    fast-xml-parser: "npm:^4.4.0"
+    "@slack/types": "npm:^2.20.1"
+    fast-xml-parser: "npm:^4.5.6"
     marked: "npm:^12.0.2"
-  checksum: 10c0/0d1df26b3cb854e5ac11f846d4c44bf4857f0d5daaafccde63a01ebb44f0e090338dce522574fa4ffd6c64dc83d8762966c8b13f05c59bb36a2535439c7a3206
+  checksum: 10c0/788327236629ad87d34dd7b4aa4bef10a72795160d54d85280c470d98e7fc5850eb527bb80d1f5771d8cf511a125cea110ad0c740515dd94751ac645232f4428
   languageName: node
   linkType: hard
 
@@ -902,7 +902,7 @@ __metadata:
   dependencies:
     "@azure/openai": "npm:^1.0.0-beta.12"
     "@babel/runtime": "npm:^7.26.0"
-    "@bdb-dd/mack": "https://github.com/bdb-dd/mack.git#14338e54e63d85151e9065d28b25caa778b9a73a"
+    "@bdb-dd/mack": "https://github.com/bdb-dd/mack.git#be311d2dbdac752b6415960adbbf3747dd3a5552"
     "@digdir/assistant-lib": "npm:1.0.0"
     "@instructor-ai/instructor": "npm:1.7.0"
     "@slack/bolt": "npm:^3.21.1"
@@ -5623,7 +5623,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:4.5.6":
+"fast-xml-parser@npm:^4.5.6":
   version: 4.5.6
   resolution: "fast-xml-parser@npm:4.5.6"
   dependencies:
