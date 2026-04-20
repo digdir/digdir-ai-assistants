@@ -618,11 +618,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@bdb-dd/mack", [\
-      ["https://github.com/bdb-dd/mack.git#commit=14338e54e63d85151e9065d28b25caa778b9a73a", {\
-        "packageLocation": "./.yarn/cache/@bdb-dd-mack-https-4267bcdbea-0d1df26b3c.zip/node_modules/@bdb-dd/mack/",\
+      ["https://github.com/bdb-dd/mack.git#commit=be311d2dbdac752b6415960adbbf3747dd3a5552", {\
+        "packageLocation": "./.yarn/cache/@bdb-dd-mack-https-c7b93ecb11-7883272366.zip/node_modules/@bdb-dd/mack/",\
         "packageDependencies": [\
-          ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=14338e54e63d85151e9065d28b25caa778b9a73a"],\
-          ["@slack/types", "npm:2.11.0"],\
+          ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=be311d2dbdac752b6415960adbbf3747dd3a5552"],\
+          ["@slack/types", "npm:2.20.1"],\
           ["fast-xml-parser", "npm:4.5.6"],\
           ["marked", "npm:12.0.2"]\
         ],\
@@ -1180,7 +1180,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@azure/openai", "npm:1.0.0-beta.13"],\
           ["@babel/runtime", "npm:7.29.2"],\
-          ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=14338e54e63d85151e9065d28b25caa778b9a73a"],\
+          ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=be311d2dbdac752b6415960adbbf3747dd3a5552"],\
           ["@digdir/assistant-lib", "workspace:packages/assistant-lib"],\
           ["@digdir/assistant-slack-app", "workspace:apps/slack-app"],\
           ["@instructor-ai/instructor", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:1.7.0"],\
