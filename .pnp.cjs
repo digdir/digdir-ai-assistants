@@ -2047,18 +2047,18 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@fortawesome/react-fontawesome", [\
-      ["npm:0.2.2", {\
-        "packageLocation": "./.yarn/cache/@fortawesome-react-fontawesome-npm-0.2.2-e1863961b2-824f96cd9b.zip/node_modules/@fortawesome/react-fontawesome/",\
+      ["npm:0.2.6", {\
+        "packageLocation": "./.yarn/cache/@fortawesome-react-fontawesome-npm-0.2.6-5f468b62d6-d4b733ad21.zip/node_modules/@fortawesome/react-fontawesome/",\
         "packageDependencies": [\
-          ["@fortawesome/react-fontawesome", "npm:0.2.2"]\
+          ["@fortawesome/react-fontawesome", "npm:0.2.6"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:0.2.2", {\
-        "packageLocation": "./.yarn/__virtual__/@fortawesome-react-fontawesome-virtual-7a9ba82ad2/0/cache/@fortawesome-react-fontawesome-npm-0.2.2-e1863961b2-824f96cd9b.zip/node_modules/@fortawesome/react-fontawesome/",\
+      ["virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:0.2.6", {\
+        "packageLocation": "./.yarn/__virtual__/@fortawesome-react-fontawesome-virtual-8a76c1c425/0/cache/@fortawesome-react-fontawesome-npm-0.2.6-5f468b62d6-d4b733ad21.zip/node_modules/@fortawesome/react-fontawesome/",\
         "packageDependencies": [\
           ["@fortawesome/fontawesome-svg-core", "npm:6.7.2"],\
-          ["@fortawesome/react-fontawesome", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:0.2.2"],\
+          ["@fortawesome/react-fontawesome", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:0.2.6"],\
           ["@types/fortawesome__fontawesome-svg-core", null],\
           ["@types/react", "npm:18.3.28"],\
           ["prop-types", "npm:15.8.1"],\
@@ -4643,7 +4643,7 @@ const RAW_RUNTIME_STATE =
           ["@emotion/styled", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:11.14.1"],\
           ["@fortawesome/fontawesome-svg-core", "npm:6.7.2"],\
           ["@fortawesome/free-solid-svg-icons", "npm:6.7.2"],\
-          ["@fortawesome/react-fontawesome", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:0.2.2"],\
+          ["@fortawesome/react-fontawesome", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:0.2.6"],\
           ["@mui/icons-material", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.18.0"],\
           ["@mui/lab", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.0.0-alpha.173"],\
           ["@mui/material", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:5.18.0"],\
