@@ -36,7 +36,7 @@ RUN yarn build
 
 
 # production image - START
-FROM node:slim@sha256:9b741b28148b0195d62fa456ed84dd6c953c1f17a3761f3e6e6797a754d9edff AS runner
+FROM node:slim@sha256:715e55e4b84e4bb0ff48e49b398a848f08e55daed8eb6a0ea1839ae53bc57583 AS runner
 
 ENV YARN_CACHE_FOLDER=.yarn/cache
 ENV NODE_ENV=production
