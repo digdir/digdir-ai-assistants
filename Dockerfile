@@ -1,6 +1,6 @@
 # build image - START
 # args without default values
-FROM node@sha256:d2b6b5aedb5b729f68ee1129e0f5a5d4713d93f82448249e82241876d8e8d86e AS builder
+FROM node@sha256:0473e7dc433a1310f436edee02aa79737ec78a4b345433ab0963d4a256f9ad85 AS builder
 ARG VITE_SLACK_APP_SUPABASE_API_URL=default \
     VITE_SLACK_APP_SUPABASE_ANON_KEY=default
 
