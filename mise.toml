@@ -1,6 +1,6 @@
 [tools]
 # gives us yarn out of the box
-yarn = "4.9.3"
+yarn = "4.18.0"
 
 [env]
 
