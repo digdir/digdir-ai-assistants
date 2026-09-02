@@ -1160,7 +1160,7 @@ const RAW_RUNTIME_STATE =
           ["@types/node", "npm:22.19.17"],\
           ["axios", "npm:1.15.0"],\
           ["dataclass", "npm:2.1.1"],\
-          ["js-yaml", "npm:4.1.1"],\
+          ["js-yaml", "npm:4.3.2"],\
           ["lodash", "npm:4.18.1"],\
           ["openai", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:4.104.0"],\
           ["prettier", "npm:3.8.3"],\
@@ -1201,7 +1201,7 @@ const RAW_RUNTIME_STATE =
           ["eslint", "virtual:44849ea337a09ab56114394fbd807c50fde43dad837da8421ffc6cfef43e100e6c81a4d2e94f8d0c16ffb597b27fe3227efb07819be8291418f78912c83469a8#npm:9.39.4"],\
           ["eslint-config-prettier", "virtual:a20587c5c30dd389a37ca4e307e53acdde0b18298a5e50a6e2a5c2be058069ab5cdba932fd9656e883313d381df18e1b0ff20704b5ca65ff278c6517a2b94927#npm:9.1.2"],\
           ["express", "npm:4.22.1"],\
-          ["js-yaml", "npm:4.1.1"],\
+          ["js-yaml", "npm:4.3.2"],\
           ["lodash", "npm:4.18.1"],\
           ["nodemon", "npm:3.1.14"],\
           ["openai", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:4.104.0"],\
@@ -1924,7 +1924,7 @@ const RAW_RUNTIME_STATE =
           ["globals", "npm:14.0.0"],\
           ["ignore", "npm:5.3.2"],\
           ["import-fresh", "npm:3.3.0"],\
-          ["js-yaml", "npm:4.1.1"],\
+          ["js-yaml", "npm:4.3.2"],\
           ["minimatch", "npm:3.1.5"],\
           ["strip-json-comments", "npm:3.1.1"]\
         ],\
@@ -8691,11 +8691,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["js-yaml", [\
-      ["npm:4.1.1", {\
-        "packageLocation": "./.yarn/cache/js-yaml-npm-4.1.1-86ec786790-561c7d7088.zip/node_modules/js-yaml/",\
+      ["npm:4.3.2", {\
+        "packageLocation": "./.yarn/cache/js-yaml-npm-4.3.2-d3b0efff68-dedd34c2e8.zip/node_modules/js-yaml/",\
         "packageDependencies": [\
           ["argparse", "npm:2.0.1"],\
-          ["js-yaml", "npm:4.1.1"]\
+          ["js-yaml", "npm:4.3.2"]\
         ],\
         "linkType": "HARD"\
       }]\
