@@ -1,7 +1,7 @@
 # Specify the base Docker image. You can read more about
 # the available images at https://crawlee.dev/docs/guides/docker-images
 # You can also use any other image from Docker Hub.
-FROM apify/actor-node-playwright-chrome:22@sha256:a543e2b0a24ece586441758cecb1cfc5f07135d8c0e811eebee7d6e222340387 AS builder
+FROM apify/actor-node-playwright-chrome:22@sha256:1f4f1080c8a8eff7583ba2665008cecc07f9afaac3f5a0abf9c1b16f042abbe4 AS builder
 
 # Copy just package.json and package-lock.json
 # to speed up the build using Docker layer cache.
@@ -19,7 +19,7 @@ COPY --chown=myuser . ./
 RUN npm run build
 
 # Create final image
-FROM apify/actor-node-playwright-chrome:22@sha256:a543e2b0a24ece586441758cecb1cfc5f07135d8c0e811eebee7d6e222340387
+FROM apify/actor-node-playwright-chrome:22@sha256:1f4f1080c8a8eff7583ba2665008cecc07f9afaac3f5a0abf9c1b16f042abbe4
 
 # Copy only built JS files from builder image
 COPY --from=builder --chown=myuser /home/myuser/dist ./dist
