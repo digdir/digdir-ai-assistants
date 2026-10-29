@@ -323,6 +323,14 @@ app.message(async ({ message, say }) => {
     return;
   }
 
+  if (answer.fallbackFrom) {
+    // a mistyped or unpublished model id would otherwise go unnoticed
+    console.warn(
+      `WARNING genki model '${answer.fallbackFrom}' not found for channel ${srcEvtContext.channel_id} ` +
+        `(${srcEvtContext.channel_name}); answered with fallback '${answer.model}'.`,
+    );
+  }
+
   rememberAnswer(answer.taskId, {
     answer,
     filters: answer.filters,
@@ -354,6 +362,7 @@ app.message(async ({ message, say }) => {
     genki_task: answer.taskId,
     model: answer.model,
     filters: answer.filters || null,
+    fallback_from: answer.fallbackFrom || null,
     thread_turns: messages.length,
   };
 
@@ -627,6 +636,9 @@ function debugMessageBlocks(
   const blocks: any[] = [
     sectionBlock(
       `*genki task* \`${meta.task_id}\`\n*Model* \`${meta.model}\`` +
+        (details?.answer.fallbackFrom
+          ? `\n*Fallback for* \`${details.answer.fallbackFrom}\` (not found)`
+          : '') +
         (details?.filters ? `\n*Filters* \`${JSON.stringify(details.filters.fields)}\`` : '') +
         (details ? `\n*Turns sent* ${details.turns}` : ''),
     ),

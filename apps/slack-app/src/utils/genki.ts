@@ -64,6 +64,8 @@ export interface GenkiAnswer {
   taskId: string;
   model: string;
   filters?: GenkiFilters;
+  // the configured model, when genki did not know it and the fallback answered
+  fallbackFrom?: string;
   finishReason: string | null;
   noAnswer: boolean;
   notice: string;
@@ -315,8 +317,8 @@ export async function askGenkiWithFallback(
     return await askGenki(params);
   } catch (e) {
     if (!fallback || !isModelMissing(e)) throw e;
-    console.warn(`genki: ${params.model} is not available, asking ${fallback.model} instead`);
-    return await askGenki({ ...params, ...fallback });
+    const answer = await askGenki({ ...params, ...fallback });
+    return { ...answer, fallbackFrom: params.model };
   }
 }
 

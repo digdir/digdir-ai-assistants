@@ -158,6 +158,7 @@ test('askGenki streams an answer, retrying once when genki is unavailable', asyn
     assert.equal(answer.taskId, 'task-1');
     assert.deepEqual(answer.sources, [{ index: 1, url: 'https://x.no' }]);
     assert.equal(answer.finishReason, 'stop');
+    assert.equal(answer.fallbackFrom, undefined);
     assert.deepEqual(shown, ['utkast', '', 'Svar [1]']);
   } finally {
     server.close();
@@ -226,6 +227,7 @@ test('askGenkiWithFallback asks the fallback when the variant is not published',
     assert.equal(answer.text, 'Svar');
     assert.equal(answer.model, 'docs-assistant__default');
     assert.deepEqual(answer.filters, fallback!.filters);
+    assert.equal(answer.fallbackFrom, 'docs-assistant__altinn-notifications');
   } finally {
     server.close();
   }
