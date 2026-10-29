@@ -5,6 +5,10 @@ import { AddressInfo } from 'net';
 import {
   applyFrame,
   askGenki,
+  askGenkiWithFallback,
+  isModelMissing,
+  GenkiError,
+  toGenkiTarget,
   initialStreamState,
   pseudonymousUserId,
   SseParser,
@@ -166,4 +170,70 @@ test('askGenki streams an answer, retrying once when genki is unavailable', asyn
   assert.equal(body.stream, true);
   assert.equal(body.genai_stream, 'live');
   assert.deepEqual(body.filters, { fields: [{ field: 'product', 'selected-options': ['KRR'] }] });
+});
+
+test('toGenkiTarget defaults the model and normalises filters', () => {
+  assert.deepEqual(
+    toGenkiTarget({ filters: { product: ['product_notifications'] } }, 'd__default'),
+    {
+      model: 'd__default',
+      filters: { fields: [{ field: 'product', 'selected-options': ['product_notifications'] }] },
+    },
+  );
+  assert.equal(toGenkiTarget(null, 'd__default'), undefined);
+});
+
+test('isModelMissing matches only a 404 for an unknown model', () => {
+  assert.equal(isModelMissing(new GenkiError('x', 404, 'agent_not_found')), true);
+  assert.equal(isModelMissing(new GenkiError('x', 404, 'model_not_found')), true);
+  assert.equal(isModelMissing(new GenkiError('x', 404, 'conversation_not_found')), false);
+  assert.equal(isModelMissing(new GenkiError('x', 400, 'invalid_filters')), false);
+});
+
+test('askGenkiWithFallback asks the fallback when the variant is not published', async () => {
+  const bodies: any[] = [];
+  const server = createServer((req, res) => {
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
+    req.on('end', () => {
+      const parsed = JSON.parse(body);
+      bodies.push(parsed);
+      if (parsed.model === 'docs-assistant__altinn-notifications') {
+        res.writeHead(404, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: { message: 'Agent not found', code: 'agent_not_found' } }));
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'text/event-stream', 'genai-task': 'task-2' });
+      res.end(`data: ${delta('Svar')}\n\ndata: [DONE]\n\n`);
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  process.env.GENKI_API_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+
+  const fallback = toGenkiTarget(
+    { filters: { product: ['product_notifications'] } },
+    'docs-assistant__default',
+  );
+  try {
+    const answer = await askGenkiWithFallback(
+      {
+        model: 'docs-assistant__altinn-notifications',
+        messages: [{ role: 'user', content: 'Hei' }],
+        userId: 'p',
+      },
+      fallback,
+    );
+    assert.equal(answer.text, 'Svar');
+    assert.equal(answer.model, 'docs-assistant__default');
+    assert.deepEqual(answer.filters, fallback!.filters);
+  } finally {
+    server.close();
+  }
+  assert.deepEqual(
+    bodies.map((b) => [b.model, b.filters?.fields?.[0]?.['selected-options']?.[0]]),
+    [
+      ['docs-assistant__altinn-notifications', undefined],
+      ['docs-assistant__default', 'product_notifications'],
+    ],
+  );
 });

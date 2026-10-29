@@ -16,13 +16,14 @@ import { lookupConfig } from './utils/bot-config';
 import { envVar, round, lapTimer, stripCodeBlockLang, isNullOrEmpty } from './utils/general';
 import { botLog, BotLogEntry, updateReactions } from './utils/bot-log';
 import {
-  askGenki,
+  askGenkiWithFallback,
   GenkiAnswer,
   GenkiFilters,
   GenkiMessage,
   pseudonymousUserId,
   sendGenkiFeedback,
   toGenkiFilters,
+  toGenkiTarget,
 } from './utils/genki';
 import {
   botTexts,
@@ -210,6 +211,10 @@ app.message(async ({ message, say }) => {
   const filters = toGenkiFilters(
     await lookupConfig(slackApp, srcEvtContext, 'genki.filters', null),
   );
+  const fallback = toGenkiTarget(
+    await lookupConfig(slackApp, srcEvtContext, 'genki.fallback', null),
+    envVar('GENKI_MODEL', ''),
+  );
   const streamUpdateSec = Number(
     await lookupConfig(slackApp, srcEvtContext, 'genki.streamUpdateSec', 1.5),
   );
@@ -265,13 +270,16 @@ app.message(async ({ message, say }) => {
   let genkiError: string | null = null;
 
   try {
-    answer = await askGenki({
-      model,
-      messages,
-      filters,
-      userId: pseudonymousUserId(srcEvtContext.team_id, srcEvtContext.user_id),
-      onText: streamer.update,
-    });
+    answer = await askGenkiWithFallback(
+      {
+        model,
+        messages,
+        filters,
+        userId: pseudonymousUserId(srcEvtContext.team_id, srcEvtContext.user_id),
+        onText: streamer.update,
+      },
+      fallback,
+    );
     if (answer.error) {
       genkiError = answer.error;
     }
@@ -315,7 +323,12 @@ app.message(async ({ message, say }) => {
     return;
   }
 
-  rememberAnswer(answer.taskId, { answer, filters, durations, turns: messages.length });
+  rememberAnswer(answer.taskId, {
+    answer,
+    filters: answer.filters,
+    durations,
+    turns: messages.length,
+  });
 
   const payload = {
     bot_name: 'docs',
@@ -340,7 +353,7 @@ app.message(async ({ message, say }) => {
     rag_success: !answer.noAnswer,
     genki_task: answer.taskId,
     model: answer.model,
-    filters: filters || null,
+    filters: answer.filters || null,
     thread_turns: messages.length,
   };
 

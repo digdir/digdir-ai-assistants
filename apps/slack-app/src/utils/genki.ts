@@ -63,6 +63,7 @@ export interface GenkiAnswer {
   sources: GenkiSource[];
   taskId: string;
   model: string;
+  filters?: GenkiFilters;
   finishReason: string | null;
   noAnswer: boolean;
   notice: string;
@@ -277,11 +278,46 @@ export async function askGenki(params: GenkiAskParams): Promise<GenkiAnswer> {
     sources: state.sources,
     taskId,
     model,
+    filters: params.filters,
     finishReason: state.finishReason,
     noAnswer: state.noAnswer,
     notice: state.notice,
     error: state.error,
   };
+}
+
+export interface GenkiTarget {
+  model: string;
+  filters?: GenkiFilters;
+}
+
+// `genki.fallback` from config: what to ask when the configured model does not exist
+// (yet), e.g. a product variant that is not published.
+export function toGenkiTarget(value: unknown, defaultModel: string): GenkiTarget | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const { model, filters } = value as { model?: string; filters?: unknown };
+  return { model: model || defaultModel, filters: toGenkiFilters(filters) };
+}
+
+export function isModelMissing(e: unknown): boolean {
+  return (
+    e instanceof GenkiError &&
+    e.status === 404 &&
+    ['model_not_found', 'agent_not_found'].includes(e.code)
+  );
+}
+
+export async function askGenkiWithFallback(
+  params: GenkiAskParams,
+  fallback?: GenkiTarget,
+): Promise<GenkiAnswer> {
+  try {
+    return await askGenki(params);
+  } catch (e) {
+    if (!fallback || !isModelMissing(e)) throw e;
+    console.warn(`genki: ${params.model} is not available, asking ${fallback.model} instead`);
+    return await askGenki({ ...params, ...fallback });
+  }
 }
 
 export async function sendGenkiFeedback(

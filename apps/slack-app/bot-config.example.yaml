@@ -9,7 +9,10 @@
   config:
     genki.model: docs-assistant__default
 
-# A product channel: same service, searching one product only
+# A product channel: the service's product variant, which pins its own filter.
+# Until that variant is published, ask the default variant with the same filter.
 - slack_context: { channel_id: C0000000000 }
   config:
-    genki.filters: { product: [product_notifications] }
+    genki.model: docs-assistant__altinn-notifications
+    genki.fallback:
+      filters: { product: [product_notifications] }
