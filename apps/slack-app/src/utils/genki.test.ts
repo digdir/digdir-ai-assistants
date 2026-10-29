@@ -1,7 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer } from 'http';
+import { AddressInfo } from 'net';
 import {
   applyFrame,
+  askGenki,
   initialStreamState,
   pseudonymousUserId,
   SseParser,
@@ -107,4 +110,60 @@ test('pseudonymousUserId is stable and does not contain the Slack ids', () => {
   assert.equal(id, pseudonymousUserId('T123', 'U456'));
   assert.notEqual(id, pseudonymousUserId('T123', 'U457'));
   assert.match(id, /^[0-9a-f]{64}$/);
+});
+
+test('askGenki streams an answer, retrying once when genki is unavailable', async () => {
+  const requests: any[] = [];
+  const server = createServer((req, res) => {
+    let body = '';
+    req.on('data', (chunk) => (body += chunk));
+    req.on('end', () => {
+      requests.push({ headers: req.headers, body: JSON.parse(body) });
+      if (requests.length === 1) {
+        res.writeHead(503).end();
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'text/event-stream', 'genai-task': 'task-1' });
+      const frames = [
+        delta('utkast'),
+        JSON.stringify({ choices: [{ delta: {} }], retract: true }),
+        delta('Svar [1]'),
+        JSON.stringify({ choices: [{ delta: {} }], sources: [{ index: 1, url: 'https://x.no' }] }),
+        JSON.stringify({ choices: [{ delta: {}, finish_reason: 'stop' }] }),
+      ];
+      res.write(': keep-alive\n\n');
+      for (const frame of frames) res.write(`data: ${frame}\n\n`);
+      res.end('data: [DONE]\n\n');
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  process.env.GENKI_API_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}/`;
+  process.env.GENKI_API_KEY = 'test-key';
+  process.env.GENKI_RETRY_MS = '10';
+
+  const shown: string[] = [];
+  try {
+    const answer = await askGenki({
+      model: 'docs-assistant__default',
+      messages: [{ role: 'user', content: 'Hei' }],
+      userId: 'pseudonym',
+      filters: { fields: [{ field: 'product', 'selected-options': ['KRR'] }] },
+      onText: (text) => shown.push(text),
+    });
+    assert.equal(answer.text, 'Svar [1]');
+    assert.equal(answer.taskId, 'task-1');
+    assert.deepEqual(answer.sources, [{ index: 1, url: 'https://x.no' }]);
+    assert.equal(answer.finishReason, 'stop');
+    assert.deepEqual(shown, ['utkast', '', 'Svar [1]']);
+  } finally {
+    server.close();
+  }
+
+  assert.equal(requests.length, 2);
+  const { headers, body } = requests[1];
+  assert.equal(headers['x-api-key'], 'test-key');
+  assert.equal(headers['x-user-id'], 'pseudonym');
+  assert.equal(body.stream, true);
+  assert.equal(body.genai_stream, 'live');
+  assert.deepEqual(body.filters, { fields: [{ field: 'product', 'selected-options': ['KRR'] }] });
 });

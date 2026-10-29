@@ -211,8 +211,23 @@ async function errorFromResponse(response: Response): Promise<GenkiError> {
   return new GenkiError(`genki ${response.status}: ${message}`, response.status, code);
 }
 
+// Retries once, before anything has streamed, when genki is briefly unreachable.
+async function postWithRetry(url: string, init: () => RequestInit): Promise<Response> {
+  try {
+    const response = await fetch(url, init());
+    if (response.status !== 502 && response.status !== 503) {
+      return response;
+    }
+  } catch (e) {
+    if ((e as Error)?.name === 'TimeoutError') throw e;
+    console.warn(`genki: request failed, retrying once: ${e}`);
+  }
+  await new Promise((resolve) => setTimeout(resolve, Number(envVar('GENKI_RETRY_MS', 3000))));
+  return await fetch(url, init());
+}
+
 export async function askGenki(params: GenkiAskParams): Promise<GenkiAnswer> {
-  const response = await fetch(`${genkiApiUrl()}/v1/chat/completions`, {
+  const response = await postWithRetry(`${genkiApiUrl()}/v1/chat/completions`, () => ({
     method: 'POST',
     headers: genkiHeaders(params.userId),
     body: JSON.stringify({
@@ -223,7 +238,7 @@ export async function askGenki(params: GenkiAskParams): Promise<GenkiAnswer> {
       genai_stream: 'live',
     }),
     signal: AbortSignal.timeout(Number(envVar('GENKI_TIMEOUT_MS', 180000))),
-  });
+  }));
 
   if (!response.ok || !response.body) {
     throw await errorFromResponse(response);
