@@ -4,7 +4,9 @@ import { createServer } from 'http';
 import { AddressInfo } from 'net';
 import {
   applyFrame,
+  apiKeyEnvName,
   askGenki,
+  sendGenkiFeedback,
   askGenkiWithFallback,
   isModelMissing,
   GenkiError,
@@ -238,4 +240,51 @@ test('askGenkiWithFallback asks the fallback when the variant is not published',
       ['docs-assistant__default', 'product_notifications'],
     ],
   );
+});
+
+test('apiKeyEnvName defaults to GENKI_API_KEY and accepts only GENKI_*API_KEY names', () => {
+  assert.equal(apiKeyEnvName(undefined), 'GENKI_API_KEY');
+  assert.equal(apiKeyEnvName(''), 'GENKI_API_KEY');
+  assert.equal(apiKeyEnvName('GENKI_TENANT_API_KEY'), 'GENKI_TENANT_API_KEY');
+  assert.throws(() => apiKeyEnvName('SLACK_BOT_TOKEN'));
+  assert.throws(() => apiKeyEnvName('GENKI_API_URL'));
+  assert.throws(() => apiKeyEnvName(42));
+});
+
+test('a channel key is used for the question and for its feedback', async () => {
+  const seen: Array<{ path?: string; key?: string | string[] }> = [];
+  const server = createServer((req, res) => {
+    seen.push({ path: req.url, key: req.headers['x-api-key'] });
+    req.resume();
+    req.on('end', () => {
+      if (req.url === '/api/feedback') {
+        res.writeHead(201, { 'content-type': 'application/json' }).end('{"ok":true}');
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'text/event-stream', 'genai-task': 'task-3' });
+      res.end(`data: ${delta('Svar')}\n\ndata: [DONE]\n\n`);
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  process.env.GENKI_API_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  process.env.GENKI_API_KEY = 'service-key';
+  process.env.GENKI_TENANT_API_KEY = 'tenant-key';
+  try {
+    const answer = await askGenki({
+      model: 'sikkert-assistent__default',
+      messages: [{ role: 'user', content: 'Hei' }],
+      userId: 'p',
+      apiKeyEnv: 'GENKI_TENANT_API_KEY',
+    });
+    await sendGenkiFeedback(answer.taskId, 'down', 'GENKI_TENANT_API_KEY');
+    await sendGenkiFeedback(answer.taskId, 'up');
+  } finally {
+    server.close();
+    delete process.env.GENKI_TENANT_API_KEY;
+  }
+  assert.deepEqual(seen, [
+    { path: '/v1/chat/completions', key: 'tenant-key' },
+    { path: '/api/feedback', key: 'tenant-key' },
+    { path: '/api/feedback', key: 'service-key' },
+  ]);
 });

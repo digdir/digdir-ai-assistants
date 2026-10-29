@@ -8,6 +8,8 @@ export interface AnswerMetadata {
   task_id: string;
   model: string;
   asker_user_id: string;
+  // the name of the environment variable whose key made the run, never the key
+  api_key_env?: string;
 }
 
 export interface SlackThreadMessage {

@@ -62,6 +62,7 @@ Config keys, set per workspace (`team_id`) or channel (`channel_id`):
 | `genki.model` | `GENKI_MODEL` | The genki model id to ask. |
 | `genki.filters` | none | Filters sent with each question, e.g. `{ product: [Maskinporten] }`, or the contract's `{ fields: [...] }` shape. |
 | `genki.fallback` | none | `{ model?, filters? }` to ask instead when `genki.model` does not exist (yet), for example a product variant that is not published. `model` defaults to `GENKI_MODEL`. |
+| `genki.apiKeyEnv` | `GENKI_API_KEY` | The environment variable holding the genki key for this channel, e.g. `GENKI_TENANT_API_KEY` for a service the default key is not bound to. Only `GENKI_*API_KEY` names are accepted. Feedback on an answer uses the same key. |
 | `ignoreWhenNotTagged` | `true` | In channels, answer only when the bot is mentioned. Direct messages are always answered. |
 | `genki.threadRepliesNeedMention` | `false` | When `false`, a reply in a thread the bot has answered is a follow-up question and is answered with the thread as history. |
 | `genki.feedbackFromAnyone` | `false` | When `false`, only the person who asked can rate an answer with :+1: / :-1:. |

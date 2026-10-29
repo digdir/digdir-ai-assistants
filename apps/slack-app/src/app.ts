@@ -16,7 +16,9 @@ import { lookupConfig } from './utils/bot-config';
 import { envVar, round, lapTimer, stripCodeBlockLang, isNullOrEmpty } from './utils/general';
 import { botLog, BotLogEntry, updateReactions } from './utils/bot-log';
 import {
+  apiKeyEnvName,
   askGenkiWithFallback,
+  DEFAULT_API_KEY_ENV,
   GenkiAnswer,
   GenkiFilters,
   GenkiMessage,
@@ -211,6 +213,9 @@ app.message(async ({ message, say }) => {
   const filters = toGenkiFilters(
     await lookupConfig(slackApp, srcEvtContext, 'genki.filters', null),
   );
+  const apiKeyEnv = apiKeyEnvName(
+    await lookupConfig(slackApp, srcEvtContext, 'genki.apiKeyEnv', DEFAULT_API_KEY_ENV),
+  );
   const fallback = toGenkiTarget(
     await lookupConfig(slackApp, srcEvtContext, 'genki.fallback', null),
     envVar('GENKI_MODEL', ''),
@@ -276,6 +281,7 @@ app.message(async ({ message, say }) => {
         messages,
         filters,
         userId: pseudonymousUserId(srcEvtContext.team_id, srcEvtContext.user_id),
+        apiKeyEnv,
         onText: streamer.update,
       },
       fallback,
@@ -374,6 +380,7 @@ app.message(async ({ message, say }) => {
       task_id: answer.taskId,
       model: answer.model,
       asker_user_id: genericMsg.user,
+      api_key_env: apiKeyEnv,
     });
   } catch (e) {
     finalizeError = e;
@@ -489,7 +496,7 @@ async function handleReactionEvents(eventBody: any) {
       return;
     }
     try {
-      await sendGenkiFeedback(meta.task_id, rating);
+      await sendGenkiFeedback(meta.task_id, rating, meta.api_key_env);
       console.log(`Sent genki feedback '${rating}' for task ${meta.task_id}.`);
     } catch (e) {
       console.error(`Error sending genki feedback for task ${meta.task_id}: ${e}`);

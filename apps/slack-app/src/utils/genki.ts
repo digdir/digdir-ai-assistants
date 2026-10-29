@@ -54,6 +54,8 @@ export interface GenkiAskParams {
   messages: GenkiMessage[];
   userId: string;
   filters?: GenkiFilters;
+  // the environment variable holding the key to use, see apiKeyEnvName()
+  apiKeyEnv?: string;
   // called with the whole answer text shown so far, after every change
   onText?: (text: string) => void;
 }
@@ -87,10 +89,28 @@ export function genkiApiUrl(): string {
   return (envVar('GENKI_API_URL', '') as string).replace(/\/+$/, '');
 }
 
-function genkiHeaders(userId?: string): Record<string, string> {
+export const DEFAULT_API_KEY_ENV = 'GENKI_API_KEY';
+
+// A channel can use another genki key (e.g. a tenant key for a service the default
+// key is not bound to) by naming the environment variable that holds it. Only
+// GENKI_*API_KEY names are accepted, so config can never send another secret.
+export function apiKeyEnvName(name: unknown): string {
+  if (name === undefined || name === null || name === '') return DEFAULT_API_KEY_ENV;
+  if (typeof name !== 'string' || !/^GENKI_[A-Z0-9_]*API_KEY$/.test(name)) {
+    throw new Error(`genki.apiKeyEnv must name a GENKI_*API_KEY variable, got '${name}'`);
+  }
+  return name;
+}
+
+function genkiHeaders(userId?: string, apiKeyEnv?: string): Record<string, string> {
+  const name = apiKeyEnvName(apiKeyEnv);
+  const key = envVar(name, '');
+  if (!key) {
+    throw new Error(`${name} is not set`);
+  }
   const headers: Record<string, string> = {
     'content-type': 'application/json',
-    'X-API-Key': envVar('GENKI_API_KEY', ''),
+    'X-API-Key': key,
   };
   if (userId) {
     headers['X-User-Id'] = userId;
@@ -232,7 +252,7 @@ async function postWithRetry(url: string, init: () => RequestInit): Promise<Resp
 export async function askGenki(params: GenkiAskParams): Promise<GenkiAnswer> {
   const response = await postWithRetry(`${genkiApiUrl()}/v1/chat/completions`, () => ({
     method: 'POST',
-    headers: genkiHeaders(params.userId),
+    headers: genkiHeaders(params.userId, params.apiKeyEnv),
     body: JSON.stringify({
       model: params.model,
       messages: params.messages,
@@ -325,11 +345,13 @@ export async function askGenkiWithFallback(
 export async function sendGenkiFeedback(
   taskId: string,
   rating: 'up' | 'down',
+  apiKeyEnv?: string,
   comment?: string,
 ): Promise<void> {
+  // genki takes feedback only from the key that made the run
   const response = await fetch(`${genkiApiUrl()}/api/feedback`, {
     method: 'POST',
-    headers: genkiHeaders(),
+    headers: genkiHeaders(undefined, apiKeyEnv),
     body: JSON.stringify({ task: taskId, rating, ...(comment ? { comment } : {}) }),
     signal: AbortSignal.timeout(15000),
   });
