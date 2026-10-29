@@ -3,7 +3,7 @@ declare module '@bdb-dd/mack';
 import { GenericMessageEvent } from '@slack/bolt';
 import { ChatUpdateResponse, WebClient } from '@slack/web-api';
 import { z } from 'zod';
-import { ZSchema } from '@digdir/assistant-lib';
+import { ZSchema } from './general';
 import ramda from 'ramda';
 
 export const SlackContextSchema = z.object({

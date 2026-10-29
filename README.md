@@ -39,6 +39,37 @@ Note: in order for your local bot endpoint to receive traffic from Slack, you ne
 
 ![Your Slack apps](/documentation/slack/your-apps.jpg)
 
+## Slack app configuration
+
+The Slack app answers with genki, through its OpenAI-compatible `/v1` API. genki searches the documentation, writes the answer in the question's language and returns the sources it cites.
+
+Environment:
+
+| Variable | Meaning |
+| --- | --- |
+| `SLACK_BOT_TOKEN`, `SLACK_BOT_SIGNING_SECRET` | The Slack app's credentials. Events arrive at `/bolt/slack/events`. |
+| `SLACK_SOCKET_MODE`, `SLACK_APP_TOKEN` | Set `SLACK_SOCKET_MODE=true` and an app-level token to connect over socket mode instead, with no public URL. |
+| `GENKI_API_URL` | genki's base URL, e.g. `http://localhost:8380`. |
+| `GENKI_API_KEY` | An API key bound to the genki service. |
+| `GENKI_MODEL` | The default model id (`<service>__<variant>`) when the config does not name one. |
+| `BOT_CONFIG_FILE` | A YAML file with the workspace and channel config, see [bot-config.example.yaml](apps/slack-app/bot-config.example.yaml). Without it, the config is read from the Supabase `bot_config` table. |
+| `SLACK_APP_SUPABASE_API_URL`, `SLACK_APP_SUPABASE_ANON_KEY` | Optional. Logs questions, answers and reactions for the admin app. Without them, log entries go to the console. |
+
+Config keys, set per workspace (`team_id`) or channel (`channel_id`):
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `genki.model` | `GENKI_MODEL` | The genki model id to ask. |
+| `genki.filters` | none | Filters sent with each question, e.g. `{ product: [Maskinporten] }`, or the contract's `{ fields: [...] }` shape. |
+| `ignoreWhenNotTagged` | `true` | In channels, answer only when the bot is mentioned. Direct messages are always answered. |
+| `genki.threadRepliesNeedMention` | `false` | When `false`, a reply in a thread the bot has answered is a follow-up question and is answered with the thread as history. |
+| `genki.feedbackFromAnyone` | `false` | When `false`, only the person who asked can rate an answer with :+1: / :-1:. |
+| `genki.streamUpdateSec` | `1.5` | How often the streamed answer is updated in Slack. |
+
+Each answer carries Slack message metadata with the genki task id, so :+1: / :-1: is sent to genki's feedback API, and :stopwatch: shows the sources and timing.
+
+Run the unit tests with `cd apps/slack-app && yarn test`.
+
 ## Deploy to Azure Container app
 
 
@@ -80,31 +111,16 @@ Sequence diagram showing execution of a typical end user query:
 sequenceDiagram
   participant slack.com
   participant slack-app
-  participant llm-api
-  participant supabase-db
+  participant genki
   participant supabase-functions
-  participant semantic-search
-  participant gpu-services
   slack.com->>slack-app: new text message
-  slack-app->>supabase-db: GET /config (cached)
-  supabase-db->>slack-app: workspace + channel config
-  slack-app->>llm-api: stage 1: analyze user query, translate if necessary
-  llm-api->>slack-app: query analysis, translation
-  slack-app->>llm-api: stage 2: query relaxation
-  llm-api->>slack-app: generated search phrases
-  slack-app->>semantic-search: hybrid search (cosine similarity + keyword)
-  semantic-search->>slack-app: sorted doc list
-  slack-app->>gpu-services: POST /colbert/rerank w/user query
-  gpu-services->>slack-app: Re-ranked doc list
-  slack-app->>llm-api: Prompt + retrieved context
-  llm-api->>slack-app: Helpful response (streamed)
-  slack-app->>slack.com: Helpful response (streamed response)
-  slack-app->>slack.com: Finalized response w/metadata
-  slack-app->>supabase-functions: Log query, response and metadata
-  supabase-functions->>supabase-db: upsert team, channel, <br>user and message data
-  slack-app->>llm-api: Translate to user's language
-  llm-api->>slack-app: (streamed response)
-  slack-app->>slack.com: (streamed response)
-  slack-app->>slack.com: Finalized response w/metadata
-  slack-app->>supabase-db: Log query, response and metadata
+  slack-app->>slack-app: workspace + channel config (cached)
+  slack-app->>slack.com: thread history (follow-up questions)
+  slack-app->>genki: POST /v1/chat/completions (stream, filters)
+  genki->>slack-app: answer (streamed), then sources
+  slack-app->>slack.com: streamed answer
+  slack-app->>slack.com: final answer with source links, task id in metadata
+  slack-app->>supabase-functions: log query, response and metadata (optional)
+  slack.com->>slack-app: :+1: / :-1: on the answer
+  slack-app->>genki: POST /api/feedback
 ```

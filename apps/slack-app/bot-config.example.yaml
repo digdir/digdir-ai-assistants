@@ -1,0 +1,15 @@
+# Example BOT_CONFIG_FILE. Rows are merged from generic to specific: a channel row
+# overrides a workspace row key by key, and a workspace row overrides a row that
+# matches everything.
+- config:
+    ignoreWhenNotTagged: true
+
+# One genki service per Slack workspace
+- slack_context: { team_id: T0000000000 }
+  config:
+    genki.model: docs-assistant__default
+
+# A product channel: same service, searching one product only
+- slack_context: { channel_id: C0000000000 }
+  config:
+    genki.filters: { product: [product_notifications] }

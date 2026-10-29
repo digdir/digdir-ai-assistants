@@ -13,14 +13,12 @@
     "build": "tsc -p .",
     "dev": "nodemon src/app.ts",
     "start": "node dist/src/app.js",
-    "go": "yarn run build && yarn start"
+    "go": "yarn run build && yarn start",
+    "test": "TS_NODE_TRANSPILE_ONLY=true node --require ts-node/register --test 'src/**/*.test.ts'"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.12",
     "@babel/runtime": "^7.26.0",
     "@bdb-dd/mack": "https://github.com/bdb-dd/mack.git#14338e54e63d85151e9065d28b25caa778b9a73a",
-    "@digdir/assistant-lib": "1.0.0",
-    "@instructor-ai/instructor": "1.7.0",
     "@slack/bolt": "^3.21.1",
     "@slack/web-api": "^6.12.1",
     "@supabase/supabase-js": "^2.46.1",
@@ -32,14 +30,10 @@
     "express": "^4.21.2",
     "js-yaml": "^4.1.1",
     "lodash": "^4.17.21",
-    "openai": "^4.79.0",
     "path-to-regexp": "^6.0.0",
     "prettier": "^3.3.3",
     "ramda": "^0.30.1",
-    "remeda": "^2.17.0",
-    "typesense": "^1.8.2",
-    "zod": "^3.24.1",
-    "zod-to-json-schema": "^3.23.5"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/body-parser": "^1",
