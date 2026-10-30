@@ -28,13 +28,13 @@ import {
   toGenkiTarget,
 } from './utils/genki';
 import {
+  answerTrailingBlocks,
   botTexts,
   escapeSlackLinkText,
   fitBlocks,
   linkCitations,
   looksNorwegian,
   sectionBlock,
-  sourceBlocks,
   sourceLinks,
 } from './utils/answer-format';
 import {
@@ -599,18 +599,19 @@ async function finalizeAnswer(
   }
 
   const texts = botTexts(looksNorwegian(answer.text));
-  const body =
-    answer.noAnswer || isNullOrEmpty(answer.text.trim())
-      ? answer.notice || texts.noAnswer
-      : answer.text;
+  const noAnswer = answer.noAnswer || isNullOrEmpty(answer.text.trim());
+  const body = noAnswer ? answer.notice || texts.noAnswer : answer.text;
 
   const answerBlocks = await markdownToBlocks(
     stripCodeBlockLang(linkCitations(body, answer.sources)),
   );
-  const trailingBlocks = [
-    ...sourceBlocks(sourceLinks(answer.text, answer.sources), texts.sourcesHeading),
-    { type: 'context', elements: [{ type: 'mrkdwn', text: texts.footer(duration) }] },
-  ];
+  const trailingBlocks = answerTrailingBlocks(
+    answer.text,
+    answer.sources,
+    texts,
+    duration,
+    noAnswer,
+  );
 
   return await app.client.chat.update({
     channel: threadTs.channel,

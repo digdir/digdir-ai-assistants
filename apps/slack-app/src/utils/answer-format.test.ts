@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  answerTrailingBlocks,
+  botTexts,
   citedIndexes,
   fitBlocks,
   linkCitations,
@@ -104,4 +106,24 @@ test('looksNorwegian', () => {
   assert.equal(looksNorwegian('Hvordan får jeg tilgang til Maskinporten?'), true);
   assert.equal(looksNorwegian('Hvordan kan jeg logge inn'), true);
   assert.equal(looksNorwegian('How do I get access to Maskinporten?'), false);
+});
+
+test('an answer without sources says so above the footer', () => {
+  const texts = botTexts(true);
+  const blocks = answerTrailingBlocks('Maskinporten er en tjeneste.', [], texts, 8.6);
+  assert.equal(blocks.length, 2);
+  assert.match(blocks[0].elements[0].text, /Ingen kilder i dette svaret/);
+  assert.match(blocks[1].elements[0].text, /Generert med KI/);
+});
+
+test('an answer with sources lists them and has no warning', () => {
+  const blocks = answerTrailingBlocks('Se [2].', sources, botTexts(false), 3);
+  assert.equal(blocks.length, 2);
+  assert.match(blocks[0].text.text, /^For more information:/);
+  assert.doesNotMatch(JSON.stringify(blocks), /No sources in this answer/);
+});
+
+test('a no-answer reply gets no extra warning', () => {
+  const blocks = answerTrailingBlocks('', [], botTexts(false), 1, true);
+  assert.equal(blocks.length, 1);
 });
