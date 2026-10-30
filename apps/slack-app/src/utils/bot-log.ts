@@ -1,6 +1,5 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SlackApp, SlackAppSchema, SlackContext, SlackContextSchema } from './slack';
-import { envVar } from '@digdir/assistant-lib';
+import { envVar, isNullOrEmpty } from './general';
 import { z } from 'zod';
 
 export const BotLogEntrySchema = z.object({
@@ -35,13 +34,16 @@ interface SlackMessage {
   durations: object;
 }
 
-// create single supabase client
-const supabase: SupabaseClient = createClient(
-  envVar('SLACK_APP_SUPABASE_API_URL'),
-  envVar('SLACK_APP_SUPABASE_ANON_KEY'),
-);
+// Logging to Supabase is optional; without it the entries only go to the console.
+function supabaseConfigured(): boolean {
+  return !isNullOrEmpty(envVar('SLACK_APP_SUPABASE_API_URL'));
+}
 
 export async function botLog(entry: BotLogEntry) {
+  if (!supabaseConfigured()) {
+    console.log(`botLog: ${JSON.stringify(entry)}`);
+    return;
+  }
   try {
     const slackMessage: SlackMessage = {
       team_id: entry.slack_context?.team_id || '',
@@ -90,6 +92,9 @@ export async function updateReactions(
   slackContext: SlackContext,
   reactions: any,
 ): Promise<BotLogEntry | null> {
+  if (!supabaseConfigured()) {
+    return null;
+  }
   // console.log(`updating reactions:\nts: ${slackContext.ts_date + '.' + slackContext.ts_time}`);
   // console.log(`reactions: \n${JSON.stringify(reactions)}`)
 

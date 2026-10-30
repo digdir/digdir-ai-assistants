@@ -1,0 +1,361 @@
+import { createHash } from 'crypto';
+import { envVar } from './general';
+
+// Client for genki's OpenAI-compatible /v1 API (see genki's frontend contract).
+
+export interface GenkiExcerpt {
+  chunk_id?: string;
+  text?: string;
+  position?: number;
+}
+
+export interface GenkiSource {
+  index?: number;
+  title?: string;
+  url?: string;
+  document_id?: string;
+  excerpts?: GenkiExcerpt[];
+}
+
+export interface GenkiFilterField {
+  field: string;
+  type?: 'multiselect' | 'contains' | 'not-in-set';
+  'value-type'?: 'string' | 'integer';
+  'selected-options': Array<string | number>;
+}
+
+export interface GenkiFilters {
+  fields: GenkiFilterField[];
+}
+
+// Filters from config, either in the contract's shape ({fields: [...]}) or as a short
+// map from field to selected values ({product: ['Maskinporten']}).
+export function toGenkiFilters(value: unknown): GenkiFilters | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const fields: GenkiFilterField[] = Array.isArray((value as any).fields)
+    ? (value as any).fields
+    : Object.entries(value as Record<string, unknown>).map(([field, selected]) => ({
+        field,
+        'selected-options': (Array.isArray(selected) ? selected : [selected]) as Array<
+          string | number
+        >,
+      }));
+  const nonEmpty = fields.filter((f) => f?.field && f['selected-options']?.length > 0);
+  return nonEmpty.length > 0 ? { fields: nonEmpty } : undefined;
+}
+
+export interface GenkiMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface GenkiAskParams {
+  model: string;
+  messages: GenkiMessage[];
+  userId: string;
+  filters?: GenkiFilters;
+  // the environment variable holding the key to use, see apiKeyEnvName()
+  apiKeyEnv?: string;
+  // called with the whole answer text shown so far, after every change
+  onText?: (text: string) => void;
+}
+
+export interface GenkiAnswer {
+  text: string;
+  sources: GenkiSource[];
+  taskId: string;
+  model: string;
+  filters?: GenkiFilters;
+  // the configured model, when genki did not know it and the fallback answered
+  fallbackFrom?: string;
+  finishReason: string | null;
+  noAnswer: boolean;
+  notice: string;
+  error: string | null;
+}
+
+export class GenkiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public code: string,
+  ) {
+    super(message);
+    this.name = 'GenkiError';
+  }
+}
+
+export function genkiApiUrl(): string {
+  return (envVar('GENKI_API_URL', '') as string).replace(/\/+$/, '');
+}
+
+export const DEFAULT_API_KEY_ENV = 'GENKI_API_KEY';
+
+// A channel can use another genki key (e.g. a tenant key for a service the default
+// key is not bound to) by naming the environment variable that holds it. Only
+// GENKI_*API_KEY names are accepted, so config can never send another secret.
+export function apiKeyEnvName(name: unknown): string {
+  if (name === undefined || name === null || name === '') return DEFAULT_API_KEY_ENV;
+  if (typeof name !== 'string' || !/^GENKI_[A-Z0-9_]*API_KEY$/.test(name)) {
+    throw new Error(`genki.apiKeyEnv must name a GENKI_*API_KEY variable, got '${name}'`);
+  }
+  return name;
+}
+
+function genkiHeaders(userId?: string, apiKeyEnv?: string): Record<string, string> {
+  const name = apiKeyEnvName(apiKeyEnv);
+  const key = envVar(name, '');
+  if (!key) {
+    throw new Error(`${name} is not set`);
+  }
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+    'X-API-Key': key,
+  };
+  if (userId) {
+    headers['X-User-Id'] = userId;
+  }
+  return headers;
+}
+
+// genki needs a stable id per end user, but never the Slack ids themselves
+export function pseudonymousUserId(teamId: string | undefined, userId: string | undefined): string {
+  return createHash('sha256')
+    .update(`${teamId || ''}:${userId || ''}`)
+    .digest('hex');
+}
+
+// Splits a server-sent event stream into the payloads of its `data:` lines.
+// Comment lines such as `: keep-alive` are dropped.
+export class SseParser {
+  private buffer = '';
+
+  push(chunk: string): string[] {
+    this.buffer += chunk;
+    const events = this.buffer.split(/\r?\n\r?\n/);
+    this.buffer = events.pop() || '';
+    return events.map(dataOf).filter((data): data is string => data !== null);
+  }
+
+  flush(): string[] {
+    const rest = dataOf(this.buffer);
+    this.buffer = '';
+    return rest === null ? [] : [rest];
+  }
+}
+
+function dataOf(event: string): string | null {
+  const lines = event
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith('data:'))
+    .map((line) => line.slice(5).replace(/^ /, ''));
+  return lines.length > 0 ? lines.join('\n') : null;
+}
+
+export interface StreamState {
+  text: string;
+  sources: GenkiSource[];
+  finishReason: string | null;
+  noAnswer: boolean;
+  notice: string;
+  error: string | null;
+  done: boolean;
+}
+
+export function initialStreamState(): StreamState {
+  return {
+    text: '',
+    sources: [],
+    finishReason: null,
+    noAnswer: false,
+    notice: '',
+    error: null,
+    done: false,
+  };
+}
+
+// Applies one `data:` payload to the stream state.
+export function applyFrame(state: StreamState, data: string): StreamState {
+  if (data.trim() === '[DONE]') {
+    return { ...state, done: true };
+  }
+
+  let frame: any;
+  try {
+    frame = JSON.parse(data);
+  } catch (e) {
+    console.warn(`genki: ignoring frame that is not JSON: ${data.substring(0, 200)}`);
+    return state;
+  }
+
+  const next = { ...state };
+  if (frame.retract === true) {
+    // the platform replaced its draft: drop what was shown and start again
+    next.text = '';
+  }
+
+  const choice = frame.choices?.[0];
+  const content = choice?.delta?.content;
+  if (typeof content === 'string') {
+    next.text += content;
+  }
+  if (Array.isArray(frame.sources)) {
+    next.sources = frame.sources;
+  }
+  if (frame.no_answer === true) {
+    next.noAnswer = true;
+  }
+  if (typeof frame.notice === 'string') {
+    next.notice = frame.notice;
+  }
+  if (choice?.finish_reason) {
+    next.finishReason = choice.finish_reason;
+  }
+  if (frame.error) {
+    next.error = frame.error.message || JSON.stringify(frame.error);
+  }
+  if (next.finishReason === 'error' && !next.error) {
+    next.error = 'genki run failed';
+  }
+  return next;
+}
+
+async function errorFromResponse(response: Response): Promise<GenkiError> {
+  let message = response.statusText;
+  let code = '';
+  try {
+    const body: any = await response.json();
+    // /v1 answers OpenAI's error shape, /api answers problem+json
+    message = body?.error?.message || body?.detail || body?.title || message;
+    code = body?.error?.code || body?.code || '';
+  } catch (e) {
+    // not JSON; keep the status text
+  }
+  return new GenkiError(`genki ${response.status}: ${message}`, response.status, code);
+}
+
+// Retries once, before anything has streamed, when genki is briefly unreachable.
+async function postWithRetry(url: string, init: () => RequestInit): Promise<Response> {
+  try {
+    const response = await fetch(url, init());
+    if (response.status !== 502 && response.status !== 503) {
+      return response;
+    }
+  } catch (e) {
+    if ((e as Error)?.name === 'TimeoutError') throw e;
+    console.warn(`genki: request failed, retrying once: ${e}`);
+  }
+  await new Promise((resolve) => setTimeout(resolve, Number(envVar('GENKI_RETRY_MS', 3000))));
+  return await fetch(url, init());
+}
+
+export async function askGenki(params: GenkiAskParams): Promise<GenkiAnswer> {
+  const response = await postWithRetry(`${genkiApiUrl()}/v1/chat/completions`, () => ({
+    method: 'POST',
+    headers: genkiHeaders(params.userId, params.apiKeyEnv),
+    body: JSON.stringify({
+      model: params.model,
+      messages: params.messages,
+      ...(params.filters && params.filters.fields.length > 0 ? { filters: params.filters } : {}),
+      stream: true,
+      genai_stream: 'live',
+    }),
+    signal: AbortSignal.timeout(Number(envVar('GENKI_TIMEOUT_MS', 180000))),
+  }));
+
+  if (!response.ok || !response.body) {
+    throw await errorFromResponse(response);
+  }
+
+  const taskId = response.headers.get('genai-task') || '';
+  const model = response.headers.get('genai-model') || params.model;
+
+  let state = initialStreamState();
+  const parser = new SseParser();
+  const decoder = new TextDecoder();
+
+  const apply = (payloads: string[]) => {
+    for (const data of payloads) {
+      const before = state.text;
+      state = applyFrame(state, data);
+      if (state.text !== before && params.onText) {
+        params.onText(state.text);
+      }
+    }
+  };
+
+  const reader = response.body.getReader();
+  while (!state.done) {
+    const { value, done } = await reader.read();
+    if (done) {
+      break;
+    }
+    apply(parser.push(decoder.decode(value, { stream: true })));
+  }
+  apply(parser.flush());
+  reader.cancel().catch(() => {});
+
+  return {
+    text: state.text,
+    sources: state.sources,
+    taskId,
+    model,
+    filters: params.filters,
+    finishReason: state.finishReason,
+    noAnswer: state.noAnswer,
+    notice: state.notice,
+    error: state.error,
+  };
+}
+
+export interface GenkiTarget {
+  model: string;
+  filters?: GenkiFilters;
+}
+
+// `genki.fallback` from config: what to ask when the configured model does not exist
+// (yet), e.g. a product variant that is not published.
+export function toGenkiTarget(value: unknown, defaultModel: string): GenkiTarget | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const { model, filters } = value as { model?: string; filters?: unknown };
+  return { model: model || defaultModel, filters: toGenkiFilters(filters) };
+}
+
+export function isModelMissing(e: unknown): boolean {
+  return (
+    e instanceof GenkiError &&
+    e.status === 404 &&
+    ['model_not_found', 'agent_not_found'].includes(e.code)
+  );
+}
+
+export async function askGenkiWithFallback(
+  params: GenkiAskParams,
+  fallback?: GenkiTarget,
+): Promise<GenkiAnswer> {
+  try {
+    return await askGenki(params);
+  } catch (e) {
+    if (!fallback || !isModelMissing(e)) throw e;
+    const answer = await askGenki({ ...params, ...fallback });
+    return { ...answer, fallbackFrom: params.model };
+  }
+}
+
+export async function sendGenkiFeedback(
+  taskId: string,
+  rating: 'up' | 'down',
+  apiKeyEnv?: string,
+  comment?: string,
+): Promise<void> {
+  // genki takes feedback only from the key that made the run
+  const response = await fetch(`${genkiApiUrl()}/api/feedback`, {
+    method: 'POST',
+    headers: genkiHeaders(undefined, apiKeyEnv),
+    body: JSON.stringify({ task: taskId, rating, ...(comment ? { comment } : {}) }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) {
+    throw await errorFromResponse(response);
+  }
+}

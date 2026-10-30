@@ -618,11 +618,11 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@bdb-dd/mack", [\
-      ["https://github.com/bdb-dd/mack.git#commit=be311d2dbdac752b6415960adbbf3747dd3a5552", {\
-        "packageLocation": "./.yarn/cache/@bdb-dd-mack-https-c7b93ecb11-7883272366.zip/node_modules/@bdb-dd/mack/",\
+      ["https://github.com/bdb-dd/mack.git#commit=14338e54e63d85151e9065d28b25caa778b9a73a", {\
+        "packageLocation": "./.yarn/cache/@bdb-dd-mack-https-4267bcdbea-0d1df26b3c.zip/node_modules/@bdb-dd/mack/",\
         "packageDependencies": [\
-          ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=be311d2dbdac752b6415960adbbf3747dd3a5552"],\
-          ["@slack/types", "npm:2.20.1"],\
+          ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=14338e54e63d85151e9065d28b25caa778b9a73a"],\
+          ["@slack/types", "npm:2.11.0"],\
           ["fast-xml-parser", "npm:4.5.6"],\
           ["marked", "npm:12.0.2"]\
         ],\
@@ -1178,12 +1178,9 @@ const RAW_RUNTIME_STATE =
       ["workspace:apps/slack-app", {\
         "packageLocation": "./apps/slack-app/",\
         "packageDependencies": [\
-          ["@azure/openai", "npm:1.0.0-beta.13"],\
           ["@babel/runtime", "npm:7.29.2"],\
-          ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=be311d2dbdac752b6415960adbbf3747dd3a5552"],\
-          ["@digdir/assistant-lib", "workspace:packages/assistant-lib"],\
+          ["@bdb-dd/mack", "https://github.com/bdb-dd/mack.git#commit=14338e54e63d85151e9065d28b25caa778b9a73a"],\
           ["@digdir/assistant-slack-app", "workspace:apps/slack-app"],\
-          ["@instructor-ai/instructor", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:1.7.0"],\
           ["@slack/bolt", "npm:3.22.0"],\
           ["@slack/web-api", "npm:6.13.0"],\
           ["@supabase/supabase-js", "npm:2.104.0"],\
@@ -1204,16 +1201,12 @@ const RAW_RUNTIME_STATE =
           ["js-yaml", "npm:4.1.1"],\
           ["lodash", "npm:4.18.1"],\
           ["nodemon", "npm:3.1.14"],\
-          ["openai", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:4.104.0"],\
           ["path-to-regexp", "npm:6.3.0"],\
           ["prettier", "npm:3.8.3"],\
           ["ramda", "npm:0.30.1"],\
-          ["remeda", "npm:2.33.7"],\
           ["ts-node", "virtual:a20587c5c30dd389a37ca4e307e53acdde0b18298a5e50a6e2a5c2be058069ab5cdba932fd9656e883313d381df18e1b0ff20704b5ca65ff278c6517a2b94927#npm:10.9.2"],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
-          ["typesense", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:1.8.2"],\
-          ["zod", "npm:3.25.76"],\
-          ["zod-to-json-schema", "virtual:678a475b95025a4694d694d3a376bec1ca1e5438a8c9fcd71d57f55774bdac2bd8867ac3f037da5deb96bf900a5e1cae6038d2e721948a8264a3be902d1dfab2#npm:3.25.2"]\
+          ["zod", "npm:3.25.76"]\
         ],\
         "linkType": "SOFT"\
       }]\

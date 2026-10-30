@@ -1,6 +1,8 @@
+import { readFileSync } from 'fs';
+import yaml from 'js-yaml';
 import { z } from 'zod';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { envVar, isNullOrEmpty } from '@digdir/assistant-lib';
+import { envVar, isNullOrEmpty } from './general';
 import { SlackApp, SlackAppSchema, SlackContext, SlackContextSchema } from './slack';
 
 const BotConfigSchema = z.object({
@@ -9,22 +11,26 @@ const BotConfigSchema = z.object({
 type BotConfig = z.infer<typeof BotConfigSchema>;
 
 const BotConfigDbRowSchema = z.object({
-  id: z.number(),
-  created_at: z.string(),
-  config: z.object(BotConfigSchema.shape),
-  slack_context: z.object(SlackContextSchema.shape),
-  slack_app: z.object(SlackAppSchema.shape),
+  id: z.number().optional(),
+  created_at: z.string().optional(),
+  config: z.object(BotConfigSchema.shape).passthrough(),
+  slack_context: z.object(SlackContextSchema.partial().shape).nullish(),
+  slack_app: z.object(SlackAppSchema.partial().shape).nullish(),
 });
-type BotConfigDbRow = z.infer<typeof BotConfigDbRowSchema>;
+export type BotConfigDbRow = z.infer<typeof BotConfigDbRowSchema>;
 
 let cachedConfigDb: BotConfigDbRow[] | null = null;
 let configFetchTimestamp: number | null = null;
 
-// create single supabase client
-const supabase: SupabaseClient = createClient(
-  envVar('SLACK_APP_SUPABASE_API_URL'),
-  envVar('SLACK_APP_SUPABASE_ANON_KEY'),
-);
+let supabase: SupabaseClient | null = null;
+
+// Config rows come from a local YAML file (BOT_CONFIG_FILE) or, when that is not set,
+// from the Supabase `bot_config` table. Both hold the same rows.
+function useSupabase(): boolean {
+  return (
+    isNullOrEmpty(envVar('BOT_CONFIG_FILE')) && !isNullOrEmpty(envVar('SLACK_APP_SUPABASE_API_URL'))
+  );
+}
 
 export async function lookupConfig<T>(
   app: SlackApp,
@@ -32,62 +38,88 @@ export async function lookupConfig<T>(
   propName: string,
   defaultValue: T,
 ): Promise<T> {
-  let merged = {};
-
-  const matching = await fetchConfig(app, context);
-
-  if (matching) {
-    for (let value of matching) {
-      if (envVar('LOG_LEVEL') == 'debug-config') {
-        console.log(
-          `before merge:\n${JSON.stringify(merged)}\nmerging with:\n${JSON.stringify(value)}`,
-        );
-      }
-      merged = { ...merged, ...value.config };
-    }
-  }
+  const rows = await fetchConfig();
+  const merged = mergeConfig(rows || [], app, context);
 
   if (envVar('LOG_LEVEL') == 'debug-config') {
     console.log(`lookupConfig, merged result:\n${JSON.stringify(merged)}`);
   }
-  if (merged && propName in merged) {
-    const configValue = merged[propName as keyof typeof merged] as T;
+  if (propName in merged) {
+    const configValue = merged[propName] as T;
     const result = configValue === undefined ? defaultValue : configValue;
     if (envVar('LOG_LEVEL') == 'debug-config') {
-      console.log(`lookupConfig found ${propName}: ${result}`);
+      console.log(`lookupConfig found ${propName}: ${JSON.stringify(result)}`);
     }
     return result;
   }
   return defaultValue;
 }
 
-async function fetchConfig(app: SlackApp, context: SlackContext): Promise<BotConfigDbRow[] | null> {
+// Merges every row that matches the app and context, generic rows first, so a
+// channel row overrides a workspace row key by key.
+export function mergeConfig(
+  rows: BotConfigDbRow[],
+  app: SlackApp,
+  context: SlackContext,
+): Record<string, any> {
+  let merged: Record<string, any> = {};
+  for (const row of matchingConfigDbRows(rows, app, context)) {
+    if (envVar('LOG_LEVEL') == 'debug-config') {
+      console.log(
+        `before merge:\n${JSON.stringify(merged)}\nmerging with:\n${JSON.stringify(row)}`,
+      );
+    }
+    merged = { ...merged, ...row.config };
+  }
+  return merged;
+}
+
+async function fetchConfig(): Promise<BotConfigDbRow[] | null> {
   try {
     if (
       !cachedConfigDb ||
       !configFetchTimestamp ||
       performance.now() - configFetchTimestamp > 10000
     ) {
-      let { data, error } = await supabase.from('bot_config').select('*');
-      if (error) {
-        console.error('Error fetching bot_config:', error);
-        return null;
-      }
-      cachedConfigDb = data as BotConfigDbRow[];
+      cachedConfigDb = useSupabase() ? await fetchSupabaseConfig() : readConfigFile();
+      configFetchTimestamp = performance.now();
 
       if (envVar('LOG_LEVEL') == 'debug') {
-        console.log(`db config fetched. Here are all the rows:\n${JSON.stringify(cachedConfigDb)}`);
+        console.log(`config fetched. Here are all the rows:\n${JSON.stringify(cachedConfigDb)}`);
       }
     }
-    if (cachedConfigDb) {
-      const matching = matchingConfigDbRows(cachedConfigDb, app, context);
-      return matching;
-    }
+    return cachedConfigDb;
   } catch (error) {
     console.error('Unexpected error fetching bot_config:', error);
     return null;
   }
-  return null;
+}
+
+async function fetchSupabaseConfig(): Promise<BotConfigDbRow[] | null> {
+  if (!supabase) {
+    supabase = createClient(
+      envVar('SLACK_APP_SUPABASE_API_URL'),
+      envVar('SLACK_APP_SUPABASE_ANON_KEY'),
+    );
+  }
+  const { data, error } = await supabase.from('bot_config').select('*');
+  if (error) {
+    console.error('Error fetching bot_config:', error);
+    return null;
+  }
+  return data as BotConfigDbRow[];
+}
+
+function readConfigFile(): BotConfigDbRow[] {
+  const file = envVar('BOT_CONFIG_FILE');
+  if (isNullOrEmpty(file)) {
+    return [];
+  }
+  return parseConfigRows(yaml.load(readFileSync(file, 'utf8')));
+}
+
+export function parseConfigRows(doc: unknown): BotConfigDbRow[] {
+  return z.array(BotConfigDbRowSchema).parse(doc || []);
 }
 
 function matchingConfigDbRows(
@@ -97,27 +129,18 @@ function matchingConfigDbRows(
 ): BotConfigDbRow[] {
   let matching: BotConfigDbRow[] = [];
 
-  configDbRows.sort(sortBotConfig);
-
   if (envVar('LOG_LEVEL') == 'debug-config') {
     console.log(
       `matching config db rows for app: ${JSON.stringify(app)}, context: ${JSON.stringify(context)}`,
     );
   }
 
-  for (let configDbRow of configDbRows) {
+  for (let configDbRow of [...configDbRows].sort(sortBotConfig)) {
     const app_id_matches =
       isNullOrEmpty(configDbRow.slack_app?.app_id) || configDbRow.slack_app?.app_id == app.app_id;
     const channel_matches =
       isNullOrEmpty(configDbRow.slack_context?.channel_id) ||
       configDbRow.slack_context?.channel_id == context.channel_id;
-
-    if (envVar('LOG_LEVEL') == 'debug-config') {
-      console.log(
-        `db config loaded, will match with:\n` +
-          `->slack context:\n${JSON.stringify(context, null, 2)}\n`,
-      );
-    }
     const team_matches =
       isNullOrEmpty(configDbRow.slack_context?.team_id) ||
       configDbRow.slack_context?.team_id == context.team_id;
@@ -141,23 +164,19 @@ function matchingConfigDbRows(
   return matching;
 }
 
-function sortBotConfig(a: BotConfigDbRow, b: BotConfigDbRow) {
-  if (
-    (isNullOrEmpty(a?.slack_app?.bot_name) && !isNullOrEmpty(b?.slack_app?.bot_name)) ||
-    (isNullOrEmpty(a?.slack_app?.app_id) && !isNullOrEmpty(b?.slack_app?.app_id)) ||
-    (isNullOrEmpty(a?.slack_context?.channel_id) && !isNullOrEmpty(b?.slack_context?.channel_id)) ||
-    (isNullOrEmpty(a?.slack_context?.team_id) && !isNullOrEmpty(b?.slack_context?.team_id))
-  ) {
-    return -1;
-  }
+// A row with more match keys is more specific and is merged later; a channel key
+// outweighs a team key, which outweighs the app keys.
+function specificity(row: BotConfigDbRow): number {
+  return [
+    row.slack_app?.bot_name,
+    row.slack_app?.app_id,
+    row.slack_context?.team_id,
+    row.slack_context?.channel_id,
+  ]
+    .map((value, i) => (isNullOrEmpty(value) ? 0 : 1 << i))
+    .reduce((a, b) => a + b, 0);
+}
 
-  if (
-    (isNullOrEmpty(b?.slack_app?.bot_name) && !isNullOrEmpty(a?.slack_app?.bot_name)) ||
-    (isNullOrEmpty(b?.slack_app?.app_id) && !isNullOrEmpty(a?.slack_app?.app_id)) ||
-    (isNullOrEmpty(b?.slack_context?.channel_id) && !isNullOrEmpty(a?.slack_context?.channel_id)) ||
-    (isNullOrEmpty(b?.slack_context?.team_id) && !isNullOrEmpty(a?.slack_context?.team_id))
-  ) {
-    return 1;
-  }
-  return 0;
+function sortBotConfig(a: BotConfigDbRow, b: BotConfigDbRow) {
+  return specificity(a) - specificity(b);
 }
