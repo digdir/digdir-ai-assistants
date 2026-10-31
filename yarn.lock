@@ -891,7 +891,7 @@ __metadata:
     tiktoken: "npm:^1.0.17"
     typescript: "npm:^5.5.4"
     typesense: "npm:^1.8.2"
-    zod: "npm:^3.24.1"
+    zod: "npm:^4.0.0"
     zod-to-json-schema: "npm:^3.23.5"
   languageName: unknown
   linkType: soft
@@ -933,7 +933,7 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.5.4"
     typesense: "npm:^1.8.2"
-    zod: "npm:^3.24.1"
+    zod: "npm:^4.0.0"
     zod-to-json-schema: "npm:^3.23.5"
   languageName: unknown
   linkType: soft
@@ -3663,7 +3663,7 @@ __metadata:
     turndown: "npm:^7.2.0"
     typescript: "npm:^5.5.4"
     typesense: "npm:^1.8.2"
-    zod: "npm:^3.24.1"
+    zod: "npm:^4.0.0"
   languageName: unknown
   linkType: soft
 
@@ -3701,7 +3701,7 @@ __metadata:
     react-syntax-highlighter: "npm:^15.6.1"
     typescript: "npm:^5.5.4"
     vite: "npm:^6.0.0"
-    zod: "npm:^3.24.1"
+    zod: "npm:^4.0.0"
   languageName: unknown
   linkType: soft
 
@@ -3723,7 +3723,7 @@ __metadata:
     tsx: "npm:^4.15.7"
     typescript: "npm:^5.5.4"
     typesense: "npm:^1.8.2"
-    zod: "npm:^3.24.1"
+    zod: "npm:^4.0.0"
   languageName: unknown
   linkType: soft
 
@@ -11568,10 +11568,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.24.1":
-  version: 3.25.76
-  resolution: "zod@npm:3.25.76"
-  checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
+"zod@npm:^4.0.0":
+  version: 4.6.7
+  resolution: "zod@npm:4.6.7"
+  checksum: 10c0/4ce2eb14034317b7254e347ca37b5ad591cf8333147030cf05b9b5d31692d45073f7f2747aa50cf8c6b29012194d2b22978cecc89969cf34a0d18e89d0ee7d7b
   languageName: node
   linkType: hard
 
